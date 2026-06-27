@@ -2,68 +2,60 @@
 <html lang="pt-BR">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
   <meta name="theme-color" content="#08080f">
   <meta name="color-scheme" content="dark">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
   <title>Ranking Pro — Reputação verificada</title>
-  <link rel="stylesheet" href="css/ranking-pro.css">
+  <link rel="stylesheet" href="css/base.css">
+  <link rel="stylesheet" href="css/style.css">
+  <link rel="stylesheet" href="css/proofly-glass.css">
+  <link rel="stylesheet" href="css/nucleus.css">
   <script src="js/site-paths.js"></script>
   <script>
     (function () {
       var params = new URLSearchParams(window.location.search);
       var token = params.get('token') || params.get('qr_token');
       if (token) {
-        var dest = RankingProPaths.siteUrl('qr/?token=' + encodeURIComponent(token));
-        window.location.replace(dest);
+        window.location.replace(RankingProPaths.siteUrl('qr/?token=' + encodeURIComponent(token)));
       }
     })();
   </script>
 </head>
-<body class="rp-shell">
-  <div class="rp-container">
-    <header class="rp-header">
-      <div class="rp-mark" aria-hidden="true">🏆</div>
-      <span class="rp-brand">Ranking Pro</span>
-    </header>
-    <div id="rp-site-nav"></div>
+<body class="home-splash nucleus-page">
+  <main class="home-splash-main">
+    <div class="home-splash-card">
+      <div class="home-splash-logo" aria-hidden="true">🏆</div>
+      <div id="rp-site-nav"></div>
 
-    <div class="rp-card rp-card-hero">
-      <div class="rp-eyebrow-wrap">
-        <p class="rp-eyebrow">✓ Só após atendimento real</p>
+      <div class="home-splash-badge-wrap">
+        <p class="home-splash-badge">✓ Só após atendimento real</p>
       </div>
-      <h1 class="rp-title">Reputação verificada</h1>
-      <p class="rp-subtitle">QR → avaliação → perfil público. Sem login.</p>
+      <h1>Reputação verificada</h1>
+      <p class="home-splash-lead">QR → avaliação → perfil público. Sem login.</p>
 
-      <div class="rp-steps">
-        <div class="rp-step">
-          <span class="rp-step-num">1</span>
-          <div class="rp-step-text">
-            <strong>QR por atendimento</strong>
-            <span>Válido 2h · token único</span>
-          </div>
+      <div class="home-splash-steps">
+        <div class="home-splash-step">
+          <span class="home-splash-step-num">1</span>
+          <div><strong>QR por atendimento</strong><span>Válido 2h · token único</span></div>
         </div>
-        <div class="rp-step">
-          <span class="rp-step-num">2</span>
-          <div class="rp-step-text">
-            <strong>Nota + comentário</strong>
-            <span>Cliente avalia na hora</span>
-          </div>
+        <div class="home-splash-step">
+          <span class="home-splash-step-num">2</span>
+          <div><strong>Nota + comentário</strong><span>Cliente avalia na hora</span></div>
         </div>
-        <div class="rp-step">
-          <span class="rp-step-num">3</span>
-          <div class="rp-step-text">
-            <strong>Perfil atualizado</strong>
-            <span>Média e histórico verificados</span>
-          </div>
+        <div class="home-splash-step">
+          <span class="home-splash-step-num">3</span>
+          <div><strong>Perfil atualizado</strong><span>Média e histórico verificados</span></div>
         </div>
       </div>
 
-      <div class="rp-btn-stack">
-        <a class="rp-btn" href="dev/gerar-qr.html">Gerar QR de teste</a>
-        <a class="rp-btn rp-btn-secondary" id="demo-profile" href="#">Ver perfil de exemplo</a>
+      <div class="home-splash-actions">
+        <a class="home-splash-btn home-splash-btn--primary" href="dev/gerar-qr.html">Gerar QR de teste</a>
+        <a class="home-splash-btn home-splash-btn--secondary" id="demo-profile" href="#">Ver perfil de exemplo</a>
       </div>
     </div>
-  </div>
+  </main>
+
+  <footer class="home-splash-footer">© 2026 Ranking Pro — Proofly Glass</footer>
 
   <script src="config.js"></script>
   <script src="js/api.js"></script>

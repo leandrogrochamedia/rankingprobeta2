@@ -2,43 +2,45 @@
 <html lang="pt-BR">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
   <meta name="theme-color" content="#08080f">
-  <title>Ranking Pro — Gerar QR (dev)</title>
-  <link rel="stylesheet" href="../css/ranking-pro.css">
+  <meta name="color-scheme" content="dark">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <title>Ranking Pro — Gerar QR</title>
+  <link rel="stylesheet" href="../css/base.css">
+  <link rel="stylesheet" href="../css/style.css">
+  <link rel="stylesheet" href="../css/proofly-glass.css">
+  <link rel="stylesheet" href="../css/nucleus.css">
   <script src="../js/site-paths.js"></script>
 </head>
-<body class="rp-shell">
-  <div class="rp-container">
-    <div id="rp-page-shell" data-brand="Ranking Pro · Dev"></div>
-    <div class="rp-card">
-      <p class="rp-logo">Gerador QR</p>
-      <h1 class="rp-title">Gerar QR</h1>
-      <p class="rp-subtitle">Sessão única por atendimento — válida por 2 horas</p>
+<body class="cliente-page nucleus-page">
+  <div class="nucleus-shell">
+    <div id="rp-site-nav"></div>
 
-      <div id="state-loading" class="rp-loading">Carregando profissionais…</div>
+    <div class="glass-discovery-shell nucleus-glass nucleus-glass--compact" id="state-loading">
+      <p class="nucleus-state">Carregando profissionais…</p>
+    </div>
 
-      <div id="state-form" class="rp-hidden">
-        <label class="rp-label" for="prof-select">Profissional</label>
-        <select id="prof-select" class="rp-dev-select"></select>
+    <div class="glass-discovery-shell nucleus-glass nucleus-glass--compact nucleus-hidden" id="state-form">
+      <p class="nucleus-eyebrow">Dev · sessão QR</p>
+      <h1 class="nucleus-title">Gerar QR</h1>
+      <p class="nucleus-subtitle">Válido por 2 horas · token único</p>
 
-        <button type="button" class="rp-btn" id="btn-generate">Gerar QR Code</button>
-        <p class="rp-message" id="form-error" style="color:var(--rp-error);"></p>
+      <label class="nucleus-form-label" for="prof-select">Profissional</label>
+      <select id="prof-select" class="nucleus-select"></select>
+
+      <button type="button" class="home-splash-btn home-splash-btn--primary" id="btn-generate">Gerar QR Code</button>
+      <p class="nucleus-meta" id="form-error" style="color:#fca5a5;margin-top:10px;"></p>
+    </div>
+
+    <div class="glass-discovery-shell nucleus-glass nucleus-hidden" id="state-result">
+      <p class="nucleus-prof-name" id="result-name"></p>
+      <div class="nucleus-qr-box" id="qr-canvas"></div>
+      <p class="nucleus-meta" id="result-expires"></p>
+      <div class="nucleus-url-row">
+        <input type="text" class="nucleus-url-input" id="qr-url" readonly>
+        <button type="button" class="home-splash-btn home-splash-btn--secondary nucleus-url-copy" id="btn-copy">Copiar</button>
       </div>
-
-      <div id="state-result" class="rp-hidden">
-        <p class="rp-prof-name" id="result-name"></p>
-        <div class="rp-qr-box" id="qr-canvas"></div>
-        <p class="rp-meta-line" id="result-expires"></p>
-
-        <div class="rp-url-box">
-          <input type="text" class="rp-url-input" id="qr-url" readonly>
-          <button type="button" class="rp-btn rp-url-copy" id="btn-copy">Copiar</button>
-        </div>
-
-        <button type="button" class="rp-btn rp-btn-secondary" id="btn-new">Gerar outro</button>
-
-      </div>
+      <button type="button" class="home-splash-btn home-splash-btn--secondary" id="btn-new" style="margin-top:10px;">Gerar outro</button>
     </div>
   </div>
 
@@ -46,7 +48,6 @@
   <script src="../config.js"></script>
   <script src="../js/api.js"></script>
   <script src="../js/site-nav.js"></script>
-  <script src="../js/page-shell.js"></script>
   <script src="../js/qr-service.js"></script>
   <script>
     (async function () {
@@ -63,83 +64,59 @@
       const qrCanvas = document.getElementById('qr-canvas');
       const qrUrlInput = document.getElementById('qr-url');
 
-      let professionals = [];
-
       function showForm() {
-        loading.classList.add('rp-hidden');
-        resultBlock.classList.add('rp-hidden');
-        formBlock.classList.remove('rp-hidden');
+        loading.classList.add('nucleus-hidden');
+        resultBlock.classList.add('nucleus-hidden');
+        formBlock.classList.remove('nucleus-hidden');
       }
 
       function showResult(data, url) {
-        formBlock.classList.add('rp-hidden');
-        resultBlock.classList.remove('rp-hidden');
+        formBlock.classList.add('nucleus-hidden');
+        resultBlock.classList.remove('nucleus-hidden');
         resultName.textContent = data.professional_name;
-        resultExpires.textContent = 'Expira em: ' + formatDate(data.expires_at);
+        resultExpires.textContent = 'Expira: ' + new Date(data.expires_at).toLocaleString('pt-BR');
         qrUrlInput.value = url;
         qrCanvas.innerHTML = '';
-
         if (typeof QRCode !== 'undefined') {
-          QRCode.toCanvas(url, { width: 220, margin: 2 }, function (err, canvas) {
-            if (err) {
-              qrCanvas.textContent = 'Erro ao gerar QR';
-              return;
-            }
-            qrCanvas.appendChild(canvas);
+          QRCode.toCanvas(url, { width: 200, margin: 2 }, function (err, canvas) {
+            if (!err) qrCanvas.appendChild(canvas);
           });
         }
       }
 
-      function formatDate(iso) {
-        return new Date(iso).toLocaleString('pt-BR');
-      }
-
       try {
-        professionals = await RankingProAPI.select(
+        const professionals = await RankingProAPI.select(
           'professionals',
           '?select=id,name,specialty&order=name.asc&limit=50'
         );
-
         if (!professionals.length) {
-          loading.textContent = 'Nenhum profissional encontrado. Rode o seed no Supabase.';
+          loading.innerHTML = '<p class="nucleus-state">Nenhum profissional no Proofly.</p>';
           return;
         }
-
         profSelect.innerHTML = professionals.map(function (p) {
           const spec = p.specialty ? ' — ' + p.specialty : '';
-          return '<option value="' + p.id + '">' + escapeHtml(p.name) + escapeHtml(spec) + '</option>';
+          return '<option value="' + p.id + '">' + p.name + spec + '</option>';
         }).join('');
-
         showForm();
       } catch (err) {
-        console.error(err);
-        loading.textContent = 'Erro ao carregar. Verifique config.js e o Supabase.';
+        loading.innerHTML = '<p class="nucleus-state">Erro ao carregar. Verifique config.js</p>';
       }
 
       btnGenerate.addEventListener('click', async function () {
-        const profId = profSelect.value;
-        if (!profId) return;
-
         btnGenerate.disabled = true;
         formError.textContent = '';
-
         try {
-          const result = await RankingProQR.createSession(profId, 2);
-
+          const result = await RankingProQR.createSession(profSelect.value, 2);
           if (result.status !== 'success') {
             formError.textContent = result.message || 'Erro ao criar sessão.';
-            btnGenerate.disabled = false;
             return;
           }
-
-          const url = result.url || RankingProQR.buildQrUrl(result.token);
-          showResult(result, url);
+          showResult(result, result.url || RankingProQR.buildQrUrl(result.token));
         } catch (err) {
-          console.error(err);
-          formError.textContent = 'Erro ao gerar QR. Verifique conexão.';
+          formError.textContent = 'Erro ao gerar QR.';
+        } finally {
+          btnGenerate.disabled = false;
         }
-
-        btnGenerate.disabled = false;
       });
 
       btnCopy.addEventListener('click', async function () {
@@ -149,22 +126,13 @@
           setTimeout(function () { btnCopy.textContent = 'Copiar'; }, 2000);
         } catch {
           qrUrlInput.select();
-          document.execCommand('copy');
         }
       });
 
       btnNew.addEventListener('click', function () {
-        resultBlock.classList.add('rp-hidden');
-        formBlock.classList.remove('rp-hidden');
+        resultBlock.classList.add('nucleus-hidden');
+        formBlock.classList.remove('nucleus-hidden');
       });
-
-      function escapeHtml(str) {
-        return String(str)
-          .replace(/&/g, '&amp;')
-          .replace(/</g, '&lt;')
-          .replace(/>/g, '&gt;')
-          .replace(/"/g, '&quot;');
-      }
     })();
   </script>
 </body>

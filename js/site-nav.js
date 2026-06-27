@@ -1,4 +1,4 @@
-// Ranking Pro — navegação compacta (root-relative)
+// Ranking Pro — navegação pills (design system glass)
 
 (function (global) {
   'use strict';
@@ -24,13 +24,14 @@
     ];
 
     host.innerHTML =
-      '<nav class="rp-site-nav" aria-label="Navegação">' +
+      '<nav class="nucleus-nav" aria-label="Navegação">' +
+      '<div class="pills-container">' +
       items.map(function (item) {
-        const cls = item.key === key ? ' is-active' : '';
+        const cls = 'pill' + (item.key === key ? ' active' : '');
         const id = item.id ? ' id="' + item.id + '"' : '';
-        return '<a class="rp-site-nav__link' + cls + '"' + id + ' href="' + item.href + '">' + item.label + '</a>';
+        return '<a class="' + cls + '"' + id + ' href="' + item.href + '">' + item.label + '</a>';
       }).join('') +
-      '</nav>';
+      '</div></nav>';
   }
 
   function mount() {
@@ -40,7 +41,7 @@
     const params = new URLSearchParams(global.location.search);
     const profId = params.get('id');
     const navProfile = document.getElementById('nav-profile');
-    if (profId && navProfile && P()) {
+    if (profId && navProfile) {
       navProfile.href = P().siteUrl('p/?id=' + encodeURIComponent(profId));
     }
   }

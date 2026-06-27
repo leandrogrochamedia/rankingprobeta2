@@ -2,68 +2,71 @@
 <html lang="pt-BR">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
   <meta name="theme-color" content="#08080f">
+  <meta name="color-scheme" content="dark">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
   <title>Ranking Pro — Avaliar</title>
-  <link rel="stylesheet" href="../css/ranking-pro.css">
+  <link rel="stylesheet" href="../css/base.css">
+  <link rel="stylesheet" href="../css/style.css">
+  <link rel="stylesheet" href="../css/proofly-glass.css">
+  <link rel="stylesheet" href="../css/nucleus.css">
   <script src="../js/site-paths.js"></script>
 </head>
-<body class="rp-shell">
-  <div class="rp-container">
-    <div id="rp-page-shell"></div>
-    <div class="rp-card" id="app">
-      <div class="rp-eyebrow-wrap">
-        <p class="rp-eyebrow">Avaliação verificada</p>
-      </div>
+<body class="cliente-page nucleus-page">
+  <div class="nucleus-shell">
+    <div id="rp-site-nav"></div>
 
-      <div id="state-loading" class="rp-loading">Carregando…</div>
+    <div class="glass-discovery-shell nucleus-glass nucleus-glass--compact" id="state-loading">
+      <p class="nucleus-state">Carregando…</p>
+    </div>
 
-      <div id="state-error" class="rp-hidden">
-        <div class="rp-error-icon">⚠️</div>
-        <h1 class="rp-error-title" id="error-title">QR inválido</h1>
-        <p class="rp-message" id="error-message"></p>
-      </div>
+    <div class="glass-discovery-shell nucleus-glass nucleus-glass--compact nucleus-hidden" id="state-error">
+      <p class="nucleus-error-title" id="error-title">QR inválido</p>
+      <p class="nucleus-subtitle" id="error-message"></p>
+    </div>
 
-      <div id="state-form" class="rp-hidden">
-        <h1 class="rp-title">Como foi o atendimento?</h1>
-        <p class="rp-prof-name" id="prof-name"></p>
-        <p class="rp-prof-specialty" id="prof-specialty"></p>
+    <div class="glass-discovery-shell nucleus-glass nucleus-hidden" id="state-form">
+      <p class="nucleus-eyebrow">Avaliação verificada</p>
+      <h1 class="nucleus-title">Como foi o atendimento?</h1>
+      <p class="nucleus-prof-name" id="prof-name"></p>
+      <p class="nucleus-prof-specialty" id="prof-specialty"></p>
 
-        <div class="rp-stars-input" id="stars-input" role="group" aria-label="Nota de 1 a 5">
-          <button type="button" data-rating="1" aria-label="1 estrela">★</button>
-          <button type="button" data-rating="2" aria-label="2 estrelas">★</button>
-          <button type="button" data-rating="3" aria-label="3 estrelas">★</button>
-          <button type="button" data-rating="4" aria-label="4 estrelas">★</button>
-          <button type="button" data-rating="5" aria-label="5 estrelas">★</button>
+      <div class="glass-review-card review-card-cliente">
+        <label class="nucleus-form-label">Nota</label>
+        <div class="stars-input" id="stars-input" role="group" aria-label="Nota de 1 a 5">
+          <button type="button" class="star-input" data-rating="1" aria-label="1 estrela">★</button>
+          <button type="button" class="star-input" data-rating="2" aria-label="2 estrelas">★</button>
+          <button type="button" class="star-input" data-rating="3" aria-label="3 estrelas">★</button>
+          <button type="button" class="star-input" data-rating="4" aria-label="4 estrelas">★</button>
+          <button type="button" class="star-input" data-rating="5" aria-label="5 estrelas">★</button>
         </div>
 
-        <label class="rp-label" for="comment">Comentário (opcional)</label>
+        <label class="nucleus-form-label" for="comment">Comentário (opcional)</label>
         <textarea
           id="comment"
-          class="rp-textarea"
+          class="nucleus-textarea"
           maxlength="500"
           placeholder="Conte como foi sua experiência…"
           rows="4"
         ></textarea>
-        <p class="rp-char-count"><span id="char-count">0</span>/500</p>
+        <p class="nucleus-char-count"><span id="char-count">0</span>/500</p>
 
-        <button type="button" class="rp-btn" id="btn-submit" disabled>Enviar avaliação</button>
-        <p class="rp-message" id="form-error" style="color:var(--rp-error);margin-top:16px;"></p>
+        <button type="button" class="home-splash-btn home-splash-btn--primary" id="btn-submit" disabled>Enviar avaliação</button>
+        <p class="nucleus-meta" id="form-error" style="color:#fca5a5;margin-top:10px;"></p>
       </div>
+    </div>
 
-      <div id="state-success" class="rp-hidden">
-        <div class="rp-success-icon">✓</div>
-        <h1 class="rp-success-title">Obrigado!</h1>
-        <p class="rp-message">Sua avaliação verificada foi registrada.</p>
-        <a class="rp-btn" id="profile-link" href="#">Ver perfil do profissional</a>
-      </div>
+    <div class="glass-discovery-shell nucleus-glass nucleus-hidden" id="state-success">
+      <p class="nucleus-success-title">Obrigado!</p>
+      <p class="nucleus-subtitle">Sua avaliação verificada foi registrada.</p>
+      <a class="home-splash-btn home-splash-btn--secondary" id="profile-link" href="#" style="margin-top:12px;">Ver perfil do profissional</a>
     </div>
   </div>
 
   <script src="../config.js"></script>
   <script src="../js/api.js"></script>
   <script src="../js/site-nav.js"></script>
-  <script src="../js/page-shell.js"></script>
+  <script src="../js/confirm-modal.js"></script>
   <script src="../js/qr-service.js"></script>
   <script src="../js/reviews-service.js"></script>
   <script>
@@ -89,24 +92,25 @@
       const token = RankingProQR.getTokenFromUrl();
 
       function hideAll() {
-        loading.classList.add('rp-hidden');
-        errorBlock.classList.add('rp-hidden');
-        formBlock.classList.add('rp-hidden');
-        successBlock.classList.add('rp-hidden');
+        loading.classList.add('nucleus-hidden');
+        errorBlock.classList.add('nucleus-hidden');
+        formBlock.classList.add('nucleus-hidden');
+        successBlock.classList.add('nucleus-hidden');
       }
 
       function showError(title, message) {
         hideAll();
-        errorBlock.classList.remove('rp-hidden');
+        errorBlock.classList.remove('nucleus-hidden');
         errorTitle.textContent = title;
         errorMessage.textContent = message || '';
       }
 
       function showForm(data) {
         hideAll();
-        formBlock.classList.remove('rp-hidden');
+        formBlock.classList.remove('nucleus-hidden');
         profName.textContent = data.professional_name || '';
         profSpecialty.textContent = data.professional_specialty || '';
+        profSpecialty.style.display = data.professional_specialty ? 'block' : 'none';
         profileLink.href = RankingProQR.buildProfileUrl(
           RankingProQR.getProfessionalIdFromRpc(data)
         );
@@ -114,14 +118,14 @@
 
       function showSuccess(data) {
         hideAll();
-        successBlock.classList.remove('rp-hidden');
+        successBlock.classList.remove('nucleus-hidden');
         profileLink.href = RankingProQR.buildProfileUrl(
           RankingProQR.getProfessionalIdFromRpc(data)
         );
       }
 
       function updateStars() {
-        starsInput.querySelectorAll('button').forEach(function (btn) {
+        starsInput.querySelectorAll('.star-input').forEach(function (btn) {
           const r = Number(btn.dataset.rating);
           btn.classList.toggle('active', r <= selectedRating);
         });

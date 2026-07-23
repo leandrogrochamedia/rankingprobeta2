@@ -1,0 +1,665 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Ranking Pro — Blueprint</title>
+  <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+  <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+  <script crossorigin src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      font-family: 'Inter', system-ui, -apple-system, sans-serif;
+      background: #07070d;
+      color: #e2e8f0;
+      -webkit-font-smoothing: antialiased;
+    }
+    ::selection { background: #6366f1; color: #fff; }
+
+    .hero {
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+      padding: 40px 24px;
+      background: radial-gradient(ellipse at 50% 0%, rgba(99,102,241,0.12) 0%, transparent 60%),
+                  radial-gradient(ellipse at 80% 80%, rgba(139,92,246,0.08) 0%, transparent 50%);
+      position: relative;
+      overflow: hidden;
+    }
+    .hero::before {
+      content: '';
+      position: absolute;
+      top: -50%;
+      left: -50%;
+      width: 200%;
+      height: 200%;
+      background: conic-gradient(from 0deg at 50% 50%, transparent, rgba(99,102,241,0.03), transparent, rgba(139,92,246,0.03), transparent);
+      animation: rotate 30s linear infinite;
+    }
+    @keyframes rotate { to { transform: rotate(360deg); } }
+    .hero-content { position: relative; z-index: 1; max-width: 680px; }
+    .hero-logo {
+      font-size: 64px; margin-bottom: 16px;
+      filter: drop-shadow(0 0 40px rgba(99,102,241,0.3));
+    }
+    .hero h1 {
+      font-size: clamp(36px, 7vw, 64px);
+      font-weight: 900;
+      letter-spacing: -0.03em;
+      background: linear-gradient(135deg, #e2e8f0, #a5b4fc, #818cf8);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      line-height: 1.1;
+    }
+    .hero p {
+      font-size: clamp(16px, 2.5vw, 20px);
+      color: #94a3b8;
+      margin-top: 20px;
+      line-height: 1.6;
+      max-width: 540px;
+    }
+    .hero-tagline {
+      margin-top: 28px;
+      padding: 12px 24px;
+      background: rgba(99,102,241,0.1);
+      border: 1px solid rgba(99,102,241,0.2);
+      border-radius: 16px;
+      font-size: 14px;
+      color: #a5b4fc;
+      font-weight: 500;
+    }
+
+    .section {
+      max-width: 1000px;
+      margin: 0 auto;
+      padding: 80px 24px;
+    }
+    .section-label {
+      font-size: 12px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.15em;
+      color: #6366f1;
+      margin-bottom: 12px;
+    }
+    .section-title {
+      font-size: clamp(28px, 4vw, 40px);
+      font-weight: 800;
+      letter-spacing: -0.02em;
+      margin-bottom: 16px;
+    }
+    .section-desc {
+      font-size: 16px;
+      color: #94a3b8;
+      line-height: 1.7;
+      max-width: 600px;
+      margin-bottom: 40px;
+    }
+
+    .cards {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      gap: 20px;
+    }
+    .card {
+      background: linear-gradient(145deg, rgba(255,255,255,0.04), rgba(255,255,255,0.02));
+      border: 1px solid rgba(255,255,255,0.06);
+      border-radius: 20px;
+      padding: 28px;
+      transition: 0.25s ease;
+    }
+    .card:hover {
+      border-color: rgba(99,102,241,0.2);
+      transform: translateY(-2px);
+      box-shadow: 0 12px 40px rgba(99,102,241,0.08);
+    }
+    .card-icon { font-size: 36px; margin-bottom: 16px; }
+    .card h3 { font-size: 18px; font-weight: 700; margin-bottom: 8px; }
+    .card p { font-size: 14px; color: #94a3b8; line-height: 1.6; }
+    .card ul {
+      list-style: none;
+      margin-top: 12px;
+    }
+    .card ul li {
+      font-size: 13px;
+      color: #64748b;
+      padding: 4px 0;
+      padding-left: 20px;
+      position: relative;
+    }
+    .card ul li::before {
+      content: '→';
+      position: absolute;
+      left: 0;
+      color: #6366f1;
+    }
+
+    .steps {
+      display: flex;
+      gap: 16px;
+      flex-wrap: wrap;
+    }
+    .step {
+      flex: 1;
+      min-width: 160px;
+      background: linear-gradient(145deg, rgba(255,255,255,0.04), rgba(255,255,255,0.02));
+      border: 1px solid rgba(255,255,255,0.06);
+      border-radius: 16px;
+      padding: 24px;
+      text-align: center;
+    }
+    .step-num {
+      width: 36px; height: 36px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, #6366f1, #8b5cf6);
+      display: flex; align-items: center; justify-content: center;
+      font-weight: 800; font-size: 14px; color: #fff;
+      margin: 0 auto 12px;
+    }
+    .step h4 { font-size: 14px; font-weight: 700; margin-bottom: 6px; }
+    .step p { font-size: 13px; color: #94a3b8; line-height: 1.5; }
+
+    .rule-box {
+      background: linear-gradient(135deg, rgba(239,68,68,0.08), rgba(239,68,68,0.03));
+      border: 1px solid rgba(239,68,68,0.15);
+      border-radius: 20px;
+      padding: 36px;
+      text-align: center;
+    }
+    .rule-box h3 { font-size: 20px; font-weight: 800; color: #fca5a5; margin-bottom: 8px; }
+    .rule-box p { font-size: 14px; color: #94a3b8; line-height: 1.6; }
+    .rule-items {
+      display: flex; justify-content: center; gap: 24px; flex-wrap: wrap;
+      margin-top: 20px;
+    }
+    .rule-items span {
+      font-size: 14px; font-weight: 600; color: #64748b;
+    }
+    .rule-items span del { color: #ef4444; }
+
+    .divider {
+      height: 1px;
+      background: linear-gradient(90deg, transparent, rgba(99,102,241,0.2), transparent);
+      max-width: 600px;
+      margin: 0 auto;
+    }
+
+    .pillars {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      gap: 16px;
+    }
+    .pillar {
+      background: rgba(255,255,255,0.02);
+      border: 1px solid rgba(255,255,255,0.06);
+      border-radius: 16px;
+      padding: 24px;
+      text-align: center;
+    }
+    .pillar-icon { font-size: 32px; margin-bottom: 8px; }
+    .pillar h4 { font-size: 16px; font-weight: 700; }
+    .pillar p { font-size: 13px; color: #94a3b8; margin-top: 6px; line-height: 1.5; }
+
+    .not-list {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+      gap: 12px;
+    }
+    .not-item {
+      background: rgba(255,255,255,0.02);
+      border: 1px solid rgba(255,255,255,0.06);
+      border-radius: 12px;
+      padding: 16px;
+      text-align: center;
+      font-size: 14px;
+      color: #64748b;
+    }
+    .not-item .x { color: #ef4444; font-weight: 700; margin-right: 6px; }
+
+    .highlight {
+      background: linear-gradient(135deg, rgba(99,102,241,0.1), rgba(139,92,246,0.05));
+      border: 1px solid rgba(99,102,241,0.15);
+      border-radius: 20px;
+      padding: 36px;
+      text-align: center;
+    }
+    .highlight h3 { font-size: 36px; font-weight: 900; color: #a5b4fc; margin-bottom: 4px; }
+    .highlight p { font-size: 14px; color: #94a3b8; }
+
+    .footer-quote {
+      text-align: center;
+      padding: 80px 24px;
+      max-width: 700px;
+      margin: 0 auto;
+    }
+    .footer-quote blockquote {
+      font-size: clamp(20px, 3vw, 32px);
+      font-weight: 700;
+      line-height: 1.4;
+      letter-spacing: -0.02em;
+      color: #c7d2fe;
+    }
+    .footer-quote cite {
+      display: block;
+      margin-top: 20px;
+      font-size: 14px;
+      font-style: normal;
+      color: #64748b;
+    }
+
+    @media (max-width: 600px) {
+      .section { padding: 60px 16px; }
+      .card { padding: 20px; }
+      .rule-box { padding: 24px; }
+      .highlight { padding: 24px; }
+    }
+  </style>
+</head>
+<body>
+  <div id="root"></div>
+  <script type="text/babel">
+    const { useState, useEffect } = React;
+
+    function Hero() {
+      return (
+        <section className="hero">
+          <div className="hero-content">
+            <div className="hero-logo">🏆</div>
+            <h1>Ranking Pro</h1>
+            <p>
+              Infraestrutura de reputação verificada para profissionais da beleza.
+              Clientes avaliam via QR Code, profissionais constroem reputação portátil,
+              estabelecimentos contratam com mais confiança.
+            </p>
+            <div className="hero-tagline">
+              A reputação pertence ao profissional, não ao estabelecimento
+            </div>
+          </div>
+        </section>
+      );
+    }
+
+    function Problema() {
+      return (
+        <section className="section" id="problema">
+          <div className="section-label">Problema</div>
+          <h2 className="section-title">Contratação baseada em achismo</h2>
+          <p className="section-desc">
+            Hoje, contratar um profissional da beleza depende de indicação, Instagram ou conversa
+            informal — tudo manipulável e sem histórico verificável.
+          </p>
+          <div className="cards">
+            <div className="card">
+              <div className="card-icon">💬</div>
+              <h3>Indicação</h3>
+              <p>Vieses pessoais, alcance limitado, sem dados concretos sobre qualidade.</p>
+            </div>
+            <div className="card">
+              <div className="card-icon">📸</div>
+              <h3>Instagram</h3>
+              <p>Portfólio curado não reflete consistência. Fotos não provam habilidade real.</p>
+            </div>
+            <div className="card">
+              <div className="card-icon">📄</div>
+              <h3>Currículo</h3>
+              <p>Autodeclarado, sem verificação. Não mostra desempenho real em atendimentos.</p>
+            </div>
+            <div className="card" style={{ gridColumn: '1 / -1', textAlign: 'center', borderColor: 'rgba(99,102,241,0.15)' }}>
+              <div className="card-icon" style={{ fontSize: 28 }}>💡</div>
+              <h3>O Ranking Pro resolve isso</h3>
+              <p>Histórico verificável de desempenho baseado em atendimentos reais via QR Code.</p>
+            </div>
+          </div>
+        </section>
+      );
+    }
+
+    function ComoFunciona() {
+      const roles = [
+        {
+          icon: '👤',
+          title: 'Cliente',
+          steps: ['Recebe atendimento', 'Escaneia o QR Code do profissional', 'Faz uma avaliação', 'A avaliação entra no histórico do profissional']
+        },
+        {
+          icon: '💼',
+          title: 'Profissional',
+          steps: ['Cria perfil com especialidades e tags', 'Recebe QR Code exclusivo', 'Acumula avaliações verificadas', 'Constrói reputação portátil ao longo do tempo', 'Compartilha sua Página de Reputação', 'Busca oportunidades em estabelecimentos']
+        },
+        {
+          icon: '🏢',
+          title: 'Estabelecimento',
+          steps: ['Cria conta e assina o plano', 'Pesquisa profissionais por reputação', 'Analisa histórico e compatibilidade', 'Contrata com segurança']
+        }
+      ];
+      return (
+        <section className="section" id="como-funciona">
+          <div className="section-label">Como funciona</div>
+          <h2 className="section-title">Três papéis, um ecossistema</h2>
+          <p className="section-desc">
+            Cada papel tem seu fluxo, mas todos compartilham a mesma base: reputação verificada.
+          </p>
+          <div className="cards">
+            {roles.map(role => (
+              <div className="card" key={role.title}>
+                <div className="card-icon">{role.icon}</div>
+                <h3>{role.title}</h3>
+                <ul>
+                  {role.steps.map((s, i) => <li key={i}>{s}</li>)}
+                </ul>
+              </div>
+            ))}
+          </div>
+        </section>
+      );
+    }
+
+    function RegraSagrada() {
+      return (
+        <section className="section" id="regra">
+          <div className="section-label">Regra fundamental</div>
+          <div className="rule-box">
+            <h3>🔐 Avaliação só existe via QR Code</h3>
+            <p>
+              Sem QR Code não existe avaliação, não existe reputação, não existe ranking.
+              Cada atendimento real gera um QR único e verificável.
+            </p>
+            <div className="rule-items">
+              <span><del>❌ Avaliação sem QR</del></span>
+              <span><del>❌ Reputação fabricada</del></span>
+              <span><del>❌ Ranking manipulável</del></span>
+            </div>
+          </div>
+        </section>
+      );
+    }
+
+    function SistemaReputacao() {
+      return (
+        <section className="section" id="reputacao">
+          <div className="section-label">Reputação</div>
+          <h2 className="section-title">Sistema de Confiança</h2>
+          <p className="section-desc">
+            As avaliações são verificadas, têm autor identificado e compõem um score
+            ponderado que reflete a verdadeira qualidade do profissional.
+          </p>
+          <div className="pillars">
+            <div className="pillar">
+              <div className="pillar-icon">⭐</div>
+              <h4>Nota + Comentário</h4>
+              <p>Cada avaliação tem nota de 1 a 5 e comentário opcional do cliente</p>
+            </div>
+            <div className="pillar">
+              <div className="pillar-icon">✅</div>
+              <h4>Verificada via QR</h4>
+              <p>QR Code único por atendimento garante que a avaliação é legítima</p>
+            </div>
+            <div className="pillar">
+              <div className="pillar-icon">🆔</div>
+              <h4>Autor identificado</h4>
+              <p>Cliente é identificado, evitando perfis falsos e avaliações fraudulentas</p>
+            </div>
+            <div className="pillar">
+              <div className="pillar-icon">🧠</div>
+              <h4>Score ponderado</h4>
+              <p>Pesos diferentes por fonte: cliente, estabelecimento e rede social</p>
+            </div>
+            <div className="pillar">
+              <div className="pillar-icon">🔗</div>
+              <h4>Reputação portátil</h4>
+              <p>Profissional leva sua reputação para qualquer estabelecimento</p>
+            </div>
+            <div className="pillar">
+              <div className="pillar-icon">📊</div>
+              <h4>Histórico completo</h4>
+              <p>Todo atendimento fica registrado — visível e auditável</p>
+            </div>
+          </div>
+        </section>
+      );
+    }
+
+    function Matching() {
+      return (
+        <section className="section" id="matching">
+          <div className="section-label">Descoberta inteligente</div>
+          <h2 className="section-title">Match por afinidade</h2>
+          <p className="section-desc">
+            O Ranking Pro não é apenas um diretório. Ele recomenda conexões baseadas em
+            perfil comportamental, tags de personalidade, estilo e ambiente.
+          </p>
+          <div className="cards">
+            <div className="card">
+              <div className="card-icon">🧩</div>
+              <h3>Tags de perfil</h3>
+              <p>Profissionais definem tags de personalidade, estilo musical, visual e lifestyle. Clientes indicam suas preferências.</p>
+            </div>
+            <div className="card">
+              <div className="card-icon">📊</div>
+              <h3>Score de compatibilidade</h3>
+              <p>Algoritmo calcula match entre perfil do profissional e preferências do cliente ou estabelecimento.</p>
+            </div>
+            <div className="card">
+              <div className="card-icon">🎯</div>
+              <h3>Recomendação contextual</h3>
+              <p>Estabelecimentos veem profissionais com perfil compatível. Clientes encontram profissionais com seu estilo.</p>
+            </div>
+          </div>
+        </section>
+      );
+    }
+
+    function QRFlow() {
+      return (
+        <section className="section" id="qr">
+          <div className="section-label">Verificação</div>
+          <h2 className="section-title">Fluxo do QR Code</h2>
+          <p className="section-desc">
+            Cada profissional e estabelecimento possui um QR Code exclusivo que garante
+            a veracidade da avaliação.
+          </p>
+          <div className="steps">
+            <div className="step">
+              <div className="step-num">1</div>
+              <h4>QR Code único</h4>
+              <p>Gerado por profissional ou estabelecimento</p>
+            </div>
+            <div className="step">
+              <div className="step-num">2</div>
+              <h4>Cliente escaneia</h4>
+              <p>Vai direto para página de avaliação</p>
+            </div>
+            <div className="step">
+              <div className="step-num">3</div>
+              <h4>Avalia com selo</h4>
+              <p>Avaliação ganha selo de verificação</p>
+            </div>
+            <div className="step">
+              <div className="step-num">4</div>
+              <h4>Token consumido</h4>
+              <p>QR não pode ser reutilizado (used_at)</p>
+            </div>
+          </div>
+        </section>
+      );
+    }
+
+    function MVP() {
+      const features = [
+        'Cadastro de profissional com perfil completo e tags',
+        'Cadastro de estabelecimento com plano de assinatura',
+        'QR Code individual por profissional',
+        'Avaliação verificada via QR Code',
+        'Perfil público (Página de Reputação)',
+        'Histórico completo de avaliações',
+        'Busca inteligente com match por afinidade',
+        'Dashboard do estabelecimento',
+        'Assinatura mensal para estabelecimentos',
+        'Ranking por categoria e localidade'
+      ];
+      return (
+        <section className="section" id="mvp">
+          <div className="section-label">MVP</div>
+          <h2 className="section-title">O que o MVP entrega</h2>
+          <div className="cards" style={{ gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))' }}>
+            {features.map((f, i) => (
+              <div className="card" key={i} style={{ padding: '16px 20px', display: 'flex', alignItems: 'center', gap: 12 }}>
+                <span style={{ fontSize: 20 }}>✅</span>
+                <p style={{ fontSize: 14, color: '#e2e8f0', margin: 0 }}>{f}</p>
+              </div>
+            ))}
+          </div>
+        </section>
+      );
+    }
+
+    function NaoProduto() {
+      const nao = ['Agenda', 'CRM', 'Rede social', 'Marketplace', 'LinkedIn da beleza', 'Sistema financeiro', 'Chat'];
+      return (
+        <section className="section" id="nao-e">
+          <div className="section-label">Escopo</div>
+          <h2 className="section-title">O que NÃO é o produto</h2>
+          <p className="section-desc">
+            Foco é reputação verificada. O que desvia disso fica de fora.
+          </p>
+          <div className="not-list">
+            {nao.map(item => (
+              <div className="not-item" key={item}>
+                <span className="x">✕</span>{item}
+              </div>
+            ))}
+          </div>
+        </section>
+      );
+    }
+
+    function Monetizacao() {
+      return (
+        <section className="section" id="monetizacao">
+          <div className="section-label">Modelo de negócio</div>
+          <h2 className="section-title">Como ganha dinheiro</h2>
+          <div className="cards" style={{ gridTemplateColumns: '1fr 1fr' }}>
+            <div className="card" style={{ borderColor: 'rgba(99,102,241,0.2)' }}>
+              <div className="card-icon">💳</div>
+              <h3>Assinatura mensal</h3>
+              <p>Estabelecimentos pagam para acessar a plataforma, pesquisar profissionais e gerenciar reputação.</p>
+            </div>
+            <div className="card" style={{ borderColor: 'rgba(139,92,246,0.15)' }}>
+              <div className="card-icon">🚀</div>
+              <h3>Futuro</h3>
+              <ul>
+                <li>Página de Reputação Premium</li>
+                <li>Destaque de profissionais no ranking</li>
+                <li>Selos e credenciais especiais</li>
+                <li>Ferramentas avançadas de recrutamento</li>
+              </ul>
+            </div>
+          </div>
+        </section>
+      );
+    }
+
+    function Metrica() {
+      return (
+        <section className="section" id="metrica" style={{ textAlign: 'center' }}>
+          <div className="divider" style={{ marginBottom: 60 }} />
+          <div className="section-label">Métrica mais importante</div>
+          <div className="highlight">
+            <h3>Quantidade de avaliações verificadas por mês</h3>
+            <p>Sem avaliações verificadas não existe reputação — é o coração do produto.</p>
+          </div>
+        </section>
+      );
+    }
+
+    function Footer() {
+      return (
+        <footer className="footer-quote">
+          <div className="divider" style={{ marginBottom: 60 }} />
+          <blockquote>
+            "Infraestrutura de reputação verificada onde clientes avaliam profissionais via QR Code, profissionais constroem reputação portátil e estabelecimentos contratam com mais confiança."
+          </blockquote>
+          <cite>Ranking Pro — Blueprint</cite>
+        </footer>
+      );
+    }
+
+    function Nav() {
+      const [scrolled, setScrolled] = useState(false);
+      useEffect(() => {
+        const handler = () => setScrolled(window.scrollY > 60);
+        window.addEventListener('scroll', handler, { passive: true });
+        return () => window.removeEventListener('scroll', handler);
+      }, []);
+
+      const links = [
+        { href: '#problema', label: 'Problema' },
+        { href: '#como-funciona', label: 'Como funciona' },
+        { href: '#regra', label: 'Regra' },
+        { href: '#reputacao', label: 'Reputação' },
+        { href: '#matching', label: 'Match' },
+        { href: '#qr', label: 'QR Code' },
+        { href: '#mvp', label: 'MVP' },
+        { href: '#monetizacao', label: 'Receita' }
+      ];
+
+      return (
+        <nav style={{
+          position: 'fixed', top: 0, left: 0, right: 0, zIndex: 100,
+          padding: '12px 24px',
+          background: scrolled ? 'rgba(7,7,13,0.92)' : 'transparent',
+          backdropFilter: scrolled ? 'blur(16px)' : 'none',
+          borderBottom: scrolled ? '1px solid rgba(255,255,255,0.06)' : 'none',
+          transition: '0.3s ease'
+        }}>
+          <div style={{
+            maxWidth: 1000, margin: '0 auto',
+            display: 'flex', alignItems: 'center', gap: 24,
+            overflowX: 'auto', whiteSpace: 'nowrap',
+            scrollbarWidth: 'none', fontSize: 13,
+            fontWeight: 500
+          }}>
+            <span style={{ fontWeight: 800, color: '#a5b4fc', marginRight: 8 }}>🏆 RP</span>
+            {links.map(l => (
+              <a key={l.href} href={l.href}
+                 style={{ color: '#94a3b8', textDecoration: 'none', transition: 'color 0.2s' }}
+                 onMouseOver={e => e.target.style.color = '#e2e8f0'}
+                 onMouseOut={e => e.target.style.color = '#94a3b8'}>
+                {l.label}
+              </a>
+            ))}
+          </div>
+        </nav>
+      );
+    }
+
+    function App() {
+      return (
+        <>
+          <Nav />
+          <Hero />
+          <Problema />
+          <ComoFunciona />
+          <RegraSagrada />
+          <SistemaReputacao />
+          <Matching />
+          <QRFlow />
+          <MVP />
+          <NaoProduto />
+          <Monetizacao />
+          <Metrica />
+          <Footer />
+        </>
+      );
+    }
+
+    ReactDOM.createRoot(document.getElementById('root')).render(<App />);
+  </script>
+</body>
+</html>

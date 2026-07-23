@@ -101,7 +101,7 @@ function getProfileHomeUrl(type, session) {
   switch (profileType) {
     case 'client':
       return (typeof getClientId === 'function' ? getClientId(s) : s.clientId)
-        ? './discover.html'
+        ? './index.html'
         : './select-client.html';
     case 'professional':
       return s.professionalId ? './professional-dashboard.html' : './select-professional.html';

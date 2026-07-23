@@ -377,7 +377,7 @@ window.salvarCadastroCliente = async function() {
     }
 
     setTimeout(() => {
-      window.location.href = './discover.html';
+      window.location.href = './index.html';
     }, 800);
   } catch (e) {
     console.error(e);

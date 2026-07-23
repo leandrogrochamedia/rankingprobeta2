@@ -40,9 +40,12 @@ const brazilianCities = [
   { city: 'Florianópolis', state: 'SC', zip: '88010-010', streets: ['Av Beira Mar Norte','Rua Felipe Schmidt','Av Rio Branco','Rua Bocaiúva'] },
   { city: 'Campinas', state: 'SP', zip: '13010-000', streets: ['Av Francisco Glicério','Rua 13 de Maio','Av Andrade Neves','Rua Dr Quirino'] },
   { city: 'Niterói', state: 'RJ', zip: '24020-010', streets: ['Av Amaral Peixoto','Rua da Conceição','Av Visconde do Rio Branco','Rua Presidente Backer'] },
+  { city: 'Manaus', state: 'AM', zip: '69010-010', streets: ['Av Djalma Batista','Av Eduardo Ribeiro','Rua 10 de Julho','Av Constantino Nery'] },
+  { city: 'Goiânia', state: 'GO', zip: '74015-010', streets: ['Av Goiás','Rua 4','Av Anhangüera','Rua 15'] },
+  { city: 'Vitória', state: 'ES', zip: '29010-010', streets: ['Av Jerônimo Monteiro','Av Nossa Senhora da Penha','Rua 7 de Setembro','Av Marechal Mascarenhas de Moraes'] },
 ];
 
-const phonePrefixes = ['11','21','31','41','51','71','85','81','61','48','19','22'];
+const phonePrefixes = ['11','21','31','41','51','71','85','81','61','48','19','22','92','62','27'];
 
 const musicTags = ['Hip Hop','Rock','Sertanejo','Pop','MPB','Eletrônico','Jazz','Reggae','Blues'];
 const visualTags = ['Streetwear','Clássico','Moderno','Tradicional','Casual','Elegante','Despojado'];
@@ -60,7 +63,7 @@ function picks(arr, min, max) {
 }
 function randInt(min, max) { return min + Math.floor(Math.random() * (max - min + 1)); }
 
-function generateCpf(strict) {
+function generateCpf() {
   const n = Array.from({ length: 9 }, () => randInt(0, 9));
   const d1 = n.reduce((s, v, i) => s + v * (10 - i), 0) * 10 % 11 % 10;
   const d2 = [...n, d1].reduce((s, v, i) => s + v * (11 - i), 0) * 10 % 11 % 10;
@@ -102,10 +105,9 @@ function generatePerson(index) {
 }
 
 function profilePhotoUrl(name) { return `https://picsum.photos/seed/${slugify(name)}/300/300`; }
-function galleryUrl(name, n) { return `https://picsum.photos/seed/${slugify(name)}-${n}/400/400`; }
 function galleryUrls(name) {
   const count = randInt(0, 6);
-  return Array.from({ length: count }, (_, i) => galleryUrl(name, i + 1));
+  return Array.from({ length: count }, (_, i) => `https://picsum.photos/seed/${slugify(name)}-g-${i+1}/400/400`);
 }
 
 // =====================================================
@@ -133,20 +135,6 @@ async function supabaseSelect(table, query) {
   return res.json();
 }
 
-async function rpc(sql) {
-  const url = `${SUPABASE_URL}/rest/v1/rpc/exec_sql`;
-  const res = await fetch(url, {
-    method: 'POST',
-    headers: { ...HEADERS, 'Content-Type': 'application/json' },
-    body: JSON.stringify({ query: sql })
-  });
-  if (!res.ok) {
-    const text = await res.text();
-    throw new Error(`RPC error: ${res.status} ${text}`);
-  }
-  return res;
-}
-
 async function batchInsert(table, rows) {
   if (!rows.length) return;
   console.log(`  Inserindo ${rows.length} registros em ${table}...`);
@@ -156,8 +144,10 @@ async function batchInsert(table, rows) {
   }
 }
 
-async function del(table, filter) {
-  const url = `${API}/${table}?${filter}`;
+async function del(table) {
+  // Delete all rows by using a filter that matches all UUIDs:
+  // id >= nil UUID (which is the minimum possible UUID)
+  const url = `${API}/${table}?id=gte.00000000-0000-0000-0000-000000000000`;
   const res = await fetch(url, { method: 'DELETE', headers: HEADERS });
   if (!res.ok) {
     const text = await res.text();
@@ -172,39 +162,49 @@ async function del(table, filter) {
 (async () => {
   console.log('\n=== SEED: 200 profissionais + estabelecimentos ===\n');
 
-  // 1. Find Leandro Rocha user to preserve
+  // 1. Find Leandro Rocha to preserve
   console.log('1. Localizando Leandro Rocha...');
   const users_existing = await supabaseSelect('users', 'name=eq.Leandro%20Rocha&select=id');
   const leandroId = users_existing?.[0]?.id;
   if (leandroId) console.log(`   Leandro Rocha encontrado: ${leandroId}`);
-  else console.log('   Leandro Rocha não encontrado — prosseguindo sem preservar');
+  else console.log('   Leandro Rocha não encontrado');
 
-  // 2. Delete existing data (FK-safe order)
+  // 2. Clear all data (FK-safe order)
   console.log('\n2. Deletando dados existentes (exceto Leandro)...');
-  const exclUser = leandroId ? `user_id.neq.${leandroId}` : '1=1';
 
-  // Nullify Leandro first so FKs don't block
+  // Nullify Leandro's FKs first so they don't block
   if (leandroId) {
-    await supabaseFetch('PATCH', `users?id=eq.${leandroId}`, { professional_id: null, establishment_id: null, client_id: null });
+    await supabaseFetch('PATCH', `users?id=eq.${leandroId}`, {
+      professional_id: null,
+      establishment_id: null,
+      client_id: null
+    });
+    // Clear his links to establishment ownership too
+    await supabaseFetch('PATCH', `establishments?owner_user_id=eq.${leandroId}`, {
+      owner_user_id: null
+    });
   }
 
-  const tablesToClear = [
+  // Tables with FKs to others (delete first, FK-safe)
+  const leafTables = [
     'reviews', 'qr_codes', 'professional_establishments',
     'professional_tags', 'establishment_tags',
     'professional_private_data', 'professional_profiles',
     'user_profiles'
   ];
-  for (const tbl of tablesToClear) {
-    try { await del(tbl, 'id.neq.none'); } catch (e) { console.warn(`   ⚠️  Erro ao deletar ${tbl}: ${e.message}`); }
+  for (const tbl of leafTables) {
+    try { await del(tbl); } catch (e) { console.warn(`   ⚠️  ${tbl}: ${e.message}`); }
   }
+
   if (leandroId) {
-    try { await del('professionals', `id.neq.${leandroId}`); } catch (e) { console.warn(`   ⚠️  Erro professionals: ${e.message}`); }
-    try { await del('establishments', 'id.neq.none'); } catch (e) { console.warn(`   ⚠️  Erro establishments: ${e.message}`); }
-    try { await del('users', `id.neq.${leandroId}`); } catch (e) { console.warn(`   ⚠️  Erro users: ${e.message}`); }
-    try { await del('client_profiles', 'id.neq.none'); } catch (e) { console.warn(`   ⚠️  Erro client_profiles: ${e.message}`); }
+    // Delete todos exceto Leandro
+    await supabaseFetch('DELETE', `users?id=neq.${leandroId}`, null);
+    await del('professionals');
+    await del('establishments');
+    await del('client_profiles');
   } else {
     for (const tbl of ['professionals', 'establishments', 'users', 'client_profiles']) {
-      try { await del(tbl, 'id.neq.none'); } catch (e) { console.warn(`   ⚠️  Erro ao deletar ${tbl}: ${e.message}`); }
+      try { await del(tbl); } catch (e) { console.warn(`   ⚠️  ${tbl}: ${e.message}`); }
     }
   }
   console.log('   Delete concluído');
@@ -212,68 +212,63 @@ async function del(table, filter) {
   // 3. Generate data
   console.log('\n3. Gerando dados...');
   const TOTAL = 200;
-  const OWNER_COUNT = Math.round(TOTAL * 0.03); // ~6
-  const EST_COUNT = OWNER_COUNT + 10; // 6 owner establishments + 10 regular
+  const OWNER_COUNT = Math.round(TOTAL * 0.03);
+  const EST_COUNT = OWNER_COUNT + 10;
 
   const people = Array.from({ length: TOTAL }, (_, i) => generatePerson(i));
 
   // Establishments
   const establishments = Array.from({ length: EST_COUNT }, (_, i) => {
-    const id = uuid();
     const cityData = pick(brazilianCities);
-    const type = pick(estTypes);
-    const name = i < OWNER_COUNT
-      ? `${pick(estNames)} ${pick(estTypes)}`
-      : `${pick(estNames)} ${pick(estTypes)}`;
+    const isOwner = i < OWNER_COUNT;
     return {
-      id,
-      name,
-      type,
-      description: `${name} — referência em ${pick(specialties).toLowerCase()} na região.`,
+      id: uuid(),
+      name: `${pick(estNames)} ${pick(estTypes)}`,
+      type: pick(estTypes),
+      description: `Referência em ${pick(specialties).toLowerCase()} na região. Ambiente acolhedor e profissionais qualificados.`,
       specialty: pick(specialties),
       avatar_url: profilePhotoUrl(`est-${i}`),
       gallery_urls: galleryUrls(`est-${i}`),
       phone: generatePhone(),
       whatsapp: generatePhone(),
-      email: `contato@est${i}.com.br`,
+      email: `contato@estabelecimento${i}.com.br`,
       zip_code: cityData.zip,
       street: pick(cityData.streets),
       number: String(randInt(10, 999)),
-      neighborhood: pick(['Centro','Jardins','Boa Viagem','Barra','Savassi','Batel','Moinhos de Vento','Vila Olímpia','Copacabana','Itaim Bibi']),
+      neighborhood: pick(['Centro','Jardins','Boa Viagem','Barra','Savassi','Batel','Moinhos de Vento','Vila Olímpia','Copacabana','Itaim Bibi','Asa Sul','Liberdade','Cambuí','Pituba']),
       city: cityData.city,
       state: cityData.state,
       country: 'Brasil',
       infra_tags: picks(infraTags, 2, 5),
       music_tags: picks(musicTags, 1, 3),
       positioning_tags: picks(['Premium','Popular','Tradicional','Moderno','Luxo','Despojado'], 1, 2),
-      audience_tags: picks(['Família','Adulto','LGBTQIA+','Empresarial','Todos'], 1, 3),
+      audience_tags: picks(['Família','Adulto','LGBTQIA+','Empresarial','Infantil','Terceira idade','Todos'], 1, 3),
       vibe_tags: picks(vibeTags, 1, 3),
       avg_rating: Math.round((3 + Math.random() * 2) * 100) / 100,
       total_reviews: randInt(1, 50),
       years_active: randInt(1, 25),
       target_audience: pick(['Todos os públicos','Público feminino','Público masculino','Jovens','Adultos','Profissionais']),
+      owner_user_id: null,
       created_at: new Date().toISOString()
     };
   });
 
-  // Assign establishments to people
-  // Owners (first OWNER_COUNT) get their own establishment
-  // Regular professionals get assigned to a random establishment
   const ownerEstIds = establishments.slice(0, OWNER_COUNT).map(e => e.id);
   const regularEstIds = establishments.slice(OWNER_COUNT).map(e => e.id);
 
+  // Professionals
   const professionals = people.map((p, i) => {
     const id = uuid();
     const isOwner = i < OWNER_COUNT;
     const estId = isOwner
       ? ownerEstIds[i]
-      : pick(regularEstIds.length ? regularEstIds : establishments.map(e => e.id));
+      : (regularEstIds.length ? pick(regularEstIds) : establishments[0].id);
 
     return {
       id,
       name: p.name,
       specialty: p.specialty,
-      bio: `${p.name} é ${p.specialty?.toLowerCase() || 'profissional'} com experiência em atendimento personalizado. Especializado em tendências e técnicas modernas.`,
+      bio: `${p.name} é ${p.specialty?.toLowerCase() || 'profissional'} com ampla experiência em atendimento personalizado. Especialista em tendências e técnicas modernas do mercado.`,
       phone: p.phone,
       email: p.email,
       avatar_url: profilePhotoUrl(p.name),
@@ -292,8 +287,10 @@ async function del(table, filter) {
       seeking_work: !isOwner,
       client_portfolio_count: randInt(5, 200),
       igv_score: Math.round((50 + Math.random() * 50) * 100) / 100,
-      previous_workplaces: `${pick(estNames)} (${randInt(1, 5)} anos), ${pick(estNames)} (${randInt(1, 3)} anos)`,
+      previous_workplaces: `${pick(estNames)} (${randInt(1,5)} anos), ${pick(estNames)} (${randInt(1,3)} anos)`,
       current_establishment_id: estId,
+      tags: picks(['Premium','Verificado','Destaque','Novo','Top'], 0, 2),
+      style_tags: picks(['Clássico','Moderno','Trendy','Tradicional','Exótico'], 1, 3),
       avg_rating: Math.round((3 + Math.random() * 2) * 100) / 100,
       total_reviews: randInt(1, 80),
       is_active: true,
@@ -326,7 +323,7 @@ async function del(table, filter) {
       zip_code: p.cityData.zip,
       street: p.street,
       number: p.num,
-      neighborhood: pick(['Centro','Jardins','Vila Nova','Boa Vista','Barra','Savassi']),
+      neighborhood: pick(['Centro','Jardins','Vila Nova','Boa Vista','Barra','Savassi','Pituba','Asa Norte']),
       city: p.cityData.city,
       state: p.cityData.state,
       country: 'Brasil',
@@ -346,6 +343,7 @@ async function del(table, filter) {
       role: isOwner ? 'estabelecimento' : 'profissional',
       professional_id: prof.id,
       establishment_id: isOwner ? establishments[i].id : null,
+      client_id: null,
       is_admin: false,
       created_at: new Date().toISOString()
     };
@@ -370,47 +368,42 @@ async function del(table, filter) {
   const APP_BASE = 'http://127.0.0.1:8790/app';
   const qrCodes = professionals.map(prof => {
     const token = uuid();
-    const url = `${APP_BASE}/scan/?token=${token}`;
     return {
       id: uuid(),
       professional_id: prof.id,
       token,
-      url,
-      expires_at: new Date(Date.now() + 365 * 86400000 * 2).toISOString(), // 2 years
+      url: `${APP_BASE}/scan/?token=${token}`,
+      expires_at: new Date(Date.now() + 365 * 86400000 * 2).toISOString(),
       created_at: new Date().toISOString()
     };
   });
 
-  // 4. Insert data
+  // 4. Insert data (FK-safe order)
   console.log('\n4. Inserindo dados no Supabase...');
 
-  console.log(`   Estabelecimentos: ${establishments.length}`);
-  await batchInsert('establishments', establishments);
+  // 4a. Establishments WITHOUT owner_user_id
+  const estNoOwner = establishments.map(({ owner_user_id, ...rest }) => ({ ...rest, owner_user_id: null }));
+  await batchInsert('establishments', estNoOwner);
 
-  console.log(`   Profissionais: ${professionals.length}`);
+  // 4b. Professionals (FK to establishments via current_establishment_id)
   await batchInsert('professionals', professionals);
 
-  console.log(`   Perfis públicos: ${profProfiles.length}`);
+  // 4c. Professional profiles & private data (FK to professionals)
   await batchInsert('professional_profiles', profProfiles);
-
-  console.log(`   Dados privados: ${profPrivateData.length}`);
   await batchInsert('professional_private_data', profPrivateData);
 
-  console.log(`   Usuários: ${profUsers.length}`);
+  // 4d. Users (FK to professionals & establishments)
   await batchInsert('users', profUsers);
 
-  // Update establishment owners
-  for (const est of establishments) {
-    if (est.owner_user_id) {
-      await supabaseFetch('PATCH', `establishments?id=eq.${est.id}`, { owner_user_id: est.owner_user_id });
-    }
+  // 4e. Update establishment owner_user_id
+  for (let i = 0; i < OWNER_COUNT; i++) {
+    await supabaseFetch('PATCH', `establishments?id=eq.${establishments[i].id}`, {
+      owner_user_id: profUsers[i].id
+    });
   }
   console.log('   Owner links atualizados');
 
-  console.log(`   Vínculos prof-est: ${profEstLinks.length}`);
   await batchInsert('professional_establishments', profEstLinks);
-
-  console.log(`   QR codes: ${qrCodes.length}`);
   await batchInsert('qr_codes', qrCodes);
 
   // 5. Summary
@@ -419,7 +412,7 @@ async function del(table, filter) {
   console.log(`   Donos (3%): ${OWNER_COUNT}`);
   console.log(`   Estabelecimentos: ${EST_COUNT}`);
   console.log(`   QR codes gerados: ${qrCodes.length}`);
-  console.log(`   Leandro Rocha preservado: ${leandroId ? '✅' : '⚠️  Não encontrado'}`);
+  console.log(`   Leandro Rocha: ${leandroId ? '✅ Preservado' : '⚠️  Não encontrado'}`);
   console.log('');
 })().catch(err => {
   console.error('\n❌ ERRO:', err.message);

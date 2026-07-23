@@ -18,7 +18,12 @@ const APP_PUBLIC_BASE_URL = (() => {
 })();
 
 const DEBUG_MODE = true;
-const PROOFLY_DEV_MENU = true;
+/** Menu dev oculto em produção (GitHub Pages) — visível só em localhost */
+const PROOFLY_DEV_MENU = typeof location !== 'undefined' && (
+  location.hostname === 'localhost' ||
+  location.hostname === '127.0.0.1' ||
+  location.hostname === '[::1]'
+);
 /** Shark Mode — Investor Blueprint; congela marketplace na UI pública */
 const SHARK_MODE = true;
 const LIMITE_PAGINA = 10;

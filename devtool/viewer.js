@@ -40,6 +40,7 @@
   const DEVTOOL_LAUNCHER = 'http://127.0.0.1:8789';
   const SANDBOX_LOCAL = 'allow-scripts allow-same-origin allow-forms allow-popups allow-modals';
   const SANDBOX_ONLINE = 'allow-scripts allow-forms allow-popups allow-modals';
+  const PREVIEW_NAV_MSG = 'ranking-pro-preview-nav';
 
   const MOBILE_DEVICE = {
     name: 'iPhone 15 Pro Max',
@@ -89,7 +90,10 @@
   let emptySecondaryAction = null;
   let emptyTertiaryAction = null;
   let lastIframeLiveUrl = '';
+  let lastIframeDisplayPath = '';
   let siteRootPath = '';
+  let iframeNavHooked = false;
+  let childNavReport = { path: '', href: '', at: 0 };
 
   function getParseOpts() {
     return {
@@ -128,34 +132,189 @@
     }
 
     syncStaticRootLabel();
+    if (previewReady) syncIframeUrlLabel();
   }
 
-  function getIframeLiveUrl() {
+  function canReadIframeLocation() {
+    if (!els.frame) return false;
+    try {
+      const href = els.frame.contentWindow?.location?.href || '';
+      return !!(href && href !== 'about:blank');
+    } catch {
+      return false;
+    }
+  }
+
+  function getIframeLiveUrl(options = {}) {
+    const { allowStaleSrc = false } = options;
     if (!els.frame) return '';
+
     try {
       const href = els.frame.contentWindow?.location?.href || '';
       if (href && href !== 'about:blank') return href;
     } catch {
-      /* cross-origin — usa src do iframe */
+      /* cross-origin — tenta document.URL */
     }
-    return els.frame.src || '';
+
+    try {
+      const docUrl = els.frame.contentDocument?.URL || '';
+      if (docUrl && docUrl !== 'about:blank') return docUrl;
+    } catch {
+      /* cross-origin */
+    }
+
+    if (allowStaleSrc) return els.frame.src || '';
+    return '';
   }
 
-  function syncIframeUrlLabel() {
-    const live = PUD.stripCacheBust(getIframeLiveUrl());
-    lastIframeLiveUrl = live;
-    const parsed = PUD.parsePreviewUrl(live, getParseOpts());
-    const route = parsed.path || '—';
-    const file = parsed.full || parsed.path || '—';
+  function formatIframeNavPath(parsed, liveUrl) {
+    if (!parsed) return '—';
+    if (parsed.path && parsed.path !== '—') return parsed.path;
+    if (parsed.full) return parsed.full;
+    return liveUrl || '—';
+  }
 
-    if (els.urlLabel) {
-      els.urlLabel.textContent = route;
-      els.urlLabel.title = 'Rota atual a partir da root do site';
-    }
+  function applyIframeNavPath(path, href, title) {
+    const display = path || '—';
+    const live = href ? PUD.stripCacheBust(href) : '';
+    lastIframeLiveUrl = live;
+    lastIframeDisplayPath = display;
+
     if (els.urlIframeLabel) {
-      els.urlIframeLabel.textContent = file;
-      els.urlIframeLabel.title = 'Arquivo / URL completa no preview';
+      els.urlIframeLabel.textContent = display;
+      els.urlIframeLabel.title = title || href || display || 'Arquivo atual no preview';
     }
+  }
+
+  function syncIframeUrlLabel(options = {}) {
+    const force = !!options.force;
+
+    if (!force && !canReadIframeLocation()) {
+      if (childNavReport.path) {
+        applyIframeNavPath(
+          childNavReport.path,
+          childNavReport.href,
+          childNavReport.href || childNavReport.path
+        );
+      }
+      return;
+    }
+
+    const live = PUD.stripCacheBust(getIframeLiveUrl());
+    if (!live) {
+      if (childNavReport.path) {
+        applyIframeNavPath(
+          childNavReport.path,
+          childNavReport.href,
+          childNavReport.href || childNavReport.path
+        );
+      }
+      return;
+    }
+
+    const parsed = PUD.parsePreviewUrl(live, getParseOpts());
+    const display = formatIframeNavPath(parsed, live);
+    const title = parsed.full || parsed.path || live || 'Arquivo atual no preview';
+    applyIframeNavPath(display, live, title);
+  }
+
+  function handlePreviewNavMessage(event) {
+    const data = event.data;
+    if (!data || data.type !== PREVIEW_NAV_MSG || !data.path) return;
+
+    childNavReport = {
+      path: data.path,
+      href: data.href || '',
+      at: Date.now()
+    };
+    applyIframeNavPath(data.path, childNavReport.href, childNavReport.href || data.path);
+  }
+
+  function injectPathReporter() {
+    try {
+      const doc = els.frame.contentDocument;
+      if (!doc || doc.getElementById('devtool-preview-reporter')) return;
+
+      const script = doc.createElement('script');
+      script.id = 'devtool-preview-reporter';
+      script.textContent = `
+        (function () {
+          if (window.parent === window) return;
+          var MSG = ${JSON.stringify(PREVIEW_NAV_MSG)};
+          function sitePath() {
+            var p = location.pathname || '/';
+            if (p.indexOf('/app/') === 0) p = p.slice(4) || '/';
+            else if (p === '/app') p = '/';
+            var file = p.split('/').filter(Boolean).pop() || 'index.html';
+            var suffix = (location.search || '') + (location.hash || '');
+            if (file === 'index.html') return '/' + suffix;
+            return '/' + file + suffix;
+          }
+          function report() {
+            try {
+              window.parent.postMessage({ type: MSG, path: sitePath(), href: location.href }, '*');
+            } catch (e) {}
+          }
+          report();
+          window.addEventListener('popstate', report);
+          window.addEventListener('hashchange', report);
+          window.addEventListener('pageshow', report);
+          var ps = history.pushState, rs = history.replaceState;
+          if (ps) history.pushState = function () { var r = ps.apply(this, arguments); report(); return r; };
+          if (rs) history.replaceState = function () { var r = rs.apply(this, arguments); report(); return r; };
+        })();
+      `;
+      (doc.head || doc.documentElement).appendChild(script);
+    } catch {
+      /* cross-origin */
+    }
+  }
+
+  function bindIframeNavigationWatch() {
+    if (!els.frame || iframeNavHooked) return;
+
+    let win;
+    let doc;
+    try {
+      win = els.frame.contentWindow;
+      doc = els.frame.contentDocument;
+    } catch {
+      return;
+    }
+    if (!win || !doc) return;
+
+    iframeNavHooked = true;
+    const notify = () => {
+      requestAnimationFrame(syncIframeUrlLabel);
+    };
+
+    win.addEventListener('popstate', notify);
+    win.addEventListener('hashchange', notify);
+
+    const { pushState, replaceState } = win.history;
+    if (typeof pushState === 'function') {
+      win.history.pushState = function (...args) {
+        const result = pushState.apply(this, args);
+        notify();
+        return result;
+      };
+    }
+    if (typeof replaceState === 'function') {
+      win.history.replaceState = function (...args) {
+        const result = replaceState.apply(this, args);
+        notify();
+        return result;
+      };
+    }
+
+    doc.addEventListener('click', () => setTimeout(notify, 0), true);
+    doc.addEventListener('submit', () => setTimeout(notify, 50), true);
+    win.addEventListener('pageshow', notify);
+    win.addEventListener('load', notify);
+  }
+
+  function resetIframeNavigationWatch() {
+    iframeNavHooked = false;
   }
 
   function resolveLocalPreview() {
@@ -163,7 +322,15 @@
     if (protocol.startsWith('http') && hostname === '127.0.0.1' && port === '8790') {
       return `${origin}/app/index.html`;
     }
-    return new URL('../index.html', window.location.href).href;
+    // LOCAL BROWSER aberto via file:// — monta caminho relativo para ../index.html
+    try {
+      const selfPath = decodeURIComponent(window.location.pathname);
+      const base = selfPath.substring(0, selfPath.lastIndexOf('/'));
+      const parent = base.substring(0, base.lastIndexOf('/')) || '.';
+      return parent + '/index.html';
+    } catch {
+      return DEVTOOL_PREVIEW;
+    }
   }
 
   const LOCAL_PREVIEW = resolveLocalPreview();
@@ -420,9 +587,14 @@
 
   function onFrameLoad() {
     clearLoadTimeout();
+    resetIframeNavigationWatch();
 
     requestAnimationFrame(() => {
       setTimeout(() => {
+        injectPathReporter();
+        bindIframeNavigationWatch();
+        syncIframeUrlLabel();
+
         if (!verifyFrameLoaded()) {
           showEmptyState('error-empty');
           return;
@@ -430,7 +602,6 @@
 
         hideEmptyState();
         syncMobileFrameInset();
-        syncIframeUrlLabel();
       }, 80);
     });
   }
@@ -443,13 +614,20 @@
   function loadPreview() {
     if (!els.frame) return;
 
+    resetIframeNavigationWatch();
+    childNavReport = { path: '', href: '', at: 0 };
     showEmptyState('loading');
     applyFrameSandbox();
     const url = getPreviewUrl();
     const bust = url + (url.includes('?') ? '&' : '?') + '_viewer=' + Date.now();
     els.frame.src = bust;
     syncUrlLabel();
-    syncIframeUrlLabel();
+    const initial = PUD.parsePreviewUrl(url, getParseOpts());
+    applyIframeNavPath(
+      formatIframeNavPath(initial, url),
+      url,
+      initial.full || initial.path || url
+    );
     syncMeta();
     scheduleLoadTimeout();
   }
@@ -459,7 +637,9 @@
   }
 
   function openExternal() {
-    const live = PUD.stripCacheBust(getIframeLiveUrl());
+    const live = PUD.stripCacheBust(
+      getIframeLiveUrl() || childNavReport.href || getIframeLiveUrl({ allowStaleSrc: true })
+    );
     const url = (live && live !== 'about:blank') ? live : getPreviewUrl();
     window.open(url, '_blank', 'noopener,noreferrer');
   }
@@ -469,11 +649,12 @@
     const labelH = 28;
     const outerW = MOBILE_DEVICE.width + MOBILE_DEVICE.bezel * 2;
     const outerH = MOBILE_DEVICE.height + MOBILE_DEVICE.bezel * 2 + labelH;
-    const pad = 20;
+    const pad = 10;
     const availW = Math.max(120, els.previewViewport.clientWidth - pad);
     const availH = Math.max(120, els.previewViewport.clientHeight - pad);
-    const scale = Math.min(1, availW / outerW, availH / outerH);
-    els.mobileChrome.style.transform = scale < 0.995 ? `scale(${scale})` : 'none';
+    const scale = Math.min(1.2, availW / outerW, availH / outerH);
+    const isNearIdentity = scale > 0.995 && scale < 1.005;
+    els.mobileChrome.style.transform = isNearIdentity ? 'none' : `scale(${scale})`;
   }
 
   function bindMobileResize() {
@@ -532,6 +713,8 @@
     });
   }
 
+  window.addEventListener('message', handlePreviewNavMessage);
+
   els.frame?.addEventListener('load', onFrameLoad);
   els.frame?.addEventListener('error', onFrameError);
 
@@ -545,10 +728,20 @@
   updateMobileTime();
   setInterval(updateMobileTime, 30000);
   setInterval(() => {
-    if (!previewReady || !els.frame) return;
+    if (!els.frame?.src) return;
+    if (!canReadIframeLocation()) return;
+
     const live = PUD.stripCacheBust(getIframeLiveUrl());
-    if (live !== lastIframeLiveUrl) syncIframeUrlLabel();
-  }, 400);
+    if (!live || live === 'about:blank') return;
+    if (live !== lastIframeLiveUrl) {
+      syncIframeUrlLabel();
+      if (previewReady && !iframeNavHooked) bindIframeNavigationWatch();
+      return;
+    }
+    const parsed = PUD.parsePreviewUrl(live, getParseOpts());
+    const display = formatIframeNavPath(parsed, live);
+    if (display !== lastIframeDisplayPath) syncIframeUrlLabel();
+  }, 250);
   loadSiteRoot().finally(() => {
     checkDevToolServer().finally(() => {
       setMobilePreview(false);

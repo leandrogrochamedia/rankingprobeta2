@@ -9,9 +9,23 @@
     const rows = await API().select(
       'professionals',
       '?id=eq.' + encodeURIComponent(id) +
-        '&select=id,name,specialty,avatar_url,avg_rating,total_reviews&limit=1'
+        '&select=id,name,specialty,bio,phone,avatar_url,avg_rating,total_reviews,' +
+        'profile:professional_profiles(bio,specialty,instagram),' +
+        'current_establishment:establishments!professionals_current_establishment_id_fkey(name,city)&limit=1'
     );
     return rows?.[0] || null;
+  }
+
+  function whatsappUrl(phone) {
+    const digits = String(phone || '').replace(/\D/g, '');
+    if (!digits) return null;
+    const n = digits.startsWith('55') ? digits : '55' + digits;
+    return 'https://wa.me/' + n;
+  }
+
+  function instagramUrl(handle) {
+    const h = String(handle || '').replace(/^@/, '').trim();
+    return h ? 'https://instagram.com/' + encodeURIComponent(h) : null;
   }
 
   async function getReviewsForProfessional(professionalId) {
@@ -63,6 +77,8 @@
     isReviewVerified,
     formatRelativeDate,
     renderStars,
-    formatRatingDisplay
+    formatRatingDisplay,
+    whatsappUrl,
+    instagramUrl
   };
 })(window);

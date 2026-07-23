@@ -1,0 +1,50 @@
+DELEGAÇÃO — Alinhamento Final v2 (Magrão)
+Data: 27/06/2026
+Repo: ranking-pro-shark
+Doc canônico: Desktop/RANKING PRO LOG/ALINHAMENTO-FINAL-v2.md
+
+REGRA ÚNICA
+O cliente só avalia profissional escaneando o QR Code dele. Ponto final.
+
+NÃO FAZER
+- Melhorar cliente.js / discovery / match / vibes / favoritos
+- Refinar carrosséis, tinder cards, onboarding de estilo
+- Copy de "combina com você" ou "match personalizado"
+
+JÁ FEITO (supervisor)
+- cliente-avaliar.html + cliente-avaliar.js (home cliente v2)
+- Redirect cliente.html e favoritos.html → cliente-avaliar (v2 público)
+- shark-mode.js atualizado para product v2
+- menu.js dock: Avaliar · Histórico · Perfil (cliente)
+- Marketplace estabelecimento reativado no dock v2
+
+CONSTRUIR DO ZERO (ordem)
+
+Fase B — Profissional
+1. dashboard-profissional.html — shell glass
+   - Média geral (destaque)
+   - Total avaliações verificadas
+   - Botão gerar QR (dev/gerar-qr ou inline)
+   - Link público /p/?id=
+   - Últimas 5 avaliações (leitura)
+2. profissional-buscar-estabelecimentos.html (criar)
+   - Lista por nota + volume
+   - Propor vínculo (hiring-service)
+
+Fase C — Estabelecimento
+1. dashboard-estabelecimento.html — shell glass
+   - Média coletiva equipe
+   - Ranking interno profissionais
+   - Atalho contratar
+2. estabelecimento-marketplace.html — simplificar
+   - Remover match/IGV fluff
+   - Ordenar: nota verificada → volume
+
+Fase D — Dados
+- Rodar 002_proofly_bridge.sql no Supabase
+
+TESTAR
+- index.html → scan QR → /qr/ → /avaliar/ → review verificada
+- cliente-avaliar.html sem busca/favoritos
+- Estabelecimento acessa marketplace sem redirect
+- DEV menu ainda abre cliente.html legado se necessário

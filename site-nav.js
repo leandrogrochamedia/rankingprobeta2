@@ -30,7 +30,7 @@
       items.push({ key: 'login', label: 'Entrar', href: P().siteUrl('login.html') });
     }
 
-    items.push({ key: 'dev', label: 'Gerar QR', href: P().siteUrl('dev/gerar-qr.html') });
+    items.push({ key: 'dev', label: 'Gerar QR', href: P().siteUrl('dev/generate-qr.html') });
 
     if (hasSession()) {
       items.push({ key: 'profile', label: 'Perfil', href: P().siteUrl('p/'), id: 'nav-profile' });
@@ -55,7 +55,7 @@
     const profId = params.get('id');
     const navProfile = document.getElementById('nav-profile');
     if (profId && navProfile) {
-      navProfile.href = P().siteUrl('p/?id=' + encodeURIComponent(profId));
+      navProfile.href = P().siteUrl('profile/?id=' + encodeURIComponent(profId));
     }
   }
 

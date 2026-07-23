@@ -6,9 +6,8 @@
   <meta name="color-scheme" content="dark">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
   <title>Ranking Pro — Login</title>
-  <link rel="stylesheet" href="css/base.css">
-  <link rel="stylesheet" href="css/style.css">
-  <style>
+
+<style>
     .login-container { max-width: 420px; margin: 60px auto; padding: 0 20px; }
     .login-container .card { padding: 32px 28px; }
     .login-container h1 { text-align: center; font-size: 28px; margin-bottom: 4px; color: #0f172a; }
@@ -31,6 +30,8 @@
     .divider { text-align: center; margin: 16px 0; color: #94a3b8; font-size: 13px; }
     @media (max-width: 480px) { .login-container .card { padding: 24px 18px; } }
   </style>
+  <link rel="stylesheet" href="./css/tokens.css">
+  <link rel="stylesheet" href="./css/proofly.css">
 </head>
 <body>
   <div class="container login-container">
@@ -64,13 +65,13 @@
     </div>
   </div>
 
-  <script src="js/loader.js"></script>
+  <script src="./loader.js"></script>
   <script>
     document.addEventListener('scriptsLoaded', function () {
       const urlParams = new URLSearchParams(window.location.search);
       const intent = urlParams.get('intent');
 
-      if (intent === 'onboarding-profissional' || intent === 'onboarding-estabelecimento') {
+      if (intent === 'professional-onboarding' || intent === 'establishment-onboarding') {
         const session = getSession();
         if (session) {
           session.professionalId = null;
@@ -85,7 +86,7 @@
           redirectAfterLogin(intent);
           return;
         }
-        window.location.href = './selecionar-perfil.html';
+        window.location.href = './select-profile.html';
         return;
       }
 
@@ -117,8 +118,8 @@
             };
 
         const intentAfter = new URLSearchParams(window.location.search).get('intent');
-        if (intentAfter === 'onboarding-profissional') sessionData.professionalId = null;
-        if (intentAfter === 'onboarding-estabelecimento') sessionData.establishmentId = null;
+        if (intentAfter === 'professional-onboarding') sessionData.professionalId = null;
+        if (intentAfter === 'establishment-onboarding') sessionData.establishmentId = null;
         delete sessionData.activeProfile;
 
         setSession(sessionData);
@@ -127,7 +128,7 @@
           redirectAfterLogin(intentAfter);
           return;
         }
-        window.location.href = './selecionar-perfil.html';
+        window.location.href = './select-profile.html';
       }
 
       window.loginCliente = loginCliente;

@@ -1,0 +1,23 @@
+# DEVTASK — Investor P1 · Dashboards Prof + Estab
+**Data:** 2026-06-28
+**Prioridade:** P1 (após P0 entrada)
+**Executor:** Magrão
+**Delegação:** `RANKING PRO LOG/DELEGACAO-Investor-P1-Dashboards-Prof-Estab.txt`
+**Schema:** `BASE DE DADOS COMPLETA.html` + `base-de-dados-schema.js`
+
+## Missão
+
+Portar `dashboard-profissional.html` e `dashboard-estabelecimento.html` do MVP para shark — dados reais, Shark congelado oculto.
+
+## Dados chave
+
+- Prof: `professionals`, `reviews`, `qr_codes`, `professional_establishments`, `professional_profiles`
+- Estab: `establishments`, `professional_establishments` + join `professionals` (ranking equipe)
+
+## Não fazer
+
+Stripe, match %, IGV, CRM, build zero, redesign
+
+## Teste
+
+Login demo → cada dashboard com nota/equipe reais + QR + /p/

@@ -1,0 +1,21 @@
+# DEVTASK — Dashboard: Top Places + Top Employees
+**Data:** 2026-06-27
+**Prioridade:** P0
+**Executor:** Magrão (Developer)
+**Spec:** `agent-prompts/DEV-TELAS-DASHBOARD-v1.md`
+**Repo:** ranking-pro-shark
+
+## Missão
+Profissional vê **Top Places** (onde trabalhar). Estabelecimento vê **Top Employees** (quem contratar). Já está no HTML — só descongelar e garantir dados.
+
+## Done quando
+1. `#careerHubSection` visível no dashboard profissional
+2. `#rhHubSection` visível no dashboard estabelecimento
+3. `profEstabRecoGrid` lista estabelecimentos rankeados com botão Pedir emprego
+4. `rhRecoGrid` lista profissionais rankeados com botão Contratar
+5. Propostas/candidaturas carregam nos inboxes existentes
+
+## Não fazer
+- Página nova
+- Redesign
+- Perguntar pro supervisor o que mostrar — ler DEV-TELAS-DASHBOARD-v1.md

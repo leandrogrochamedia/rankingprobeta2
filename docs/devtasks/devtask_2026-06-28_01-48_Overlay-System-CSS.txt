@@ -1,0 +1,3 @@
+# DEVTASK — Overlay System CSS
+Ver spec completa: DEVSYSTEM/devtasks/devtask_2026-06-28_01-48_Overlay-System-CSS.txt
+Repo: ranking-pro-shark · Arquivo canônico: overlay-system.css

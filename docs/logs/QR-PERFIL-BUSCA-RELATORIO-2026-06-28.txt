@@ -1,0 +1,49 @@
+================================================================================
+QR barcode → perfil busca — P0 bug fix
+Data: 28/06/2026
+Repo: ranking-pro-shark
+================================================================================
+
+ALTERAÇÕES
+----------
+1. qr-service.js
+   - buildProfileBuscaUrl(entity, id, options?) → URL absoluta cliente.html
+   - createSessionDirect grava URL canônica em qr_codes.url
+
+2. dashboard-profissional.html — gerarQRCode()
+   - Payload QR: RankingProQR.buildProfileBuscaUrl('professional', profId, { token })
+   - Carrega site-paths.js + qr-service.js
+
+3. dashboard-estabelecimento.html — gerarQRCodeEstab()
+   - Payload QR: buildProfileBuscaUrl('establishment', estId, { token })
+
+4. qr-upload-decode.js — normalizarUrlQr()
+   - professionalId / establishmentId → cliente.html (absoluta)
+   - perfil-page.html?tipo=&id= → cliente.html drawer
+   - /p/?id= → cliente.html?professionalId=
+   - token UUID sozinho → qr/?token= (validação depois redireciona pro perfil)
+   - index.html?professionalId= reconhecido via extractEntityIds
+
+5. index-qr.js
+   - Redirect index?profId/estId → cliente.html absoluto
+   - Scanner usa mesma normalização
+
+6. qr/index.html
+   - Token válido → cliente.html?professionalId={prof}&token={token}
+     (perfil primeiro, avaliação depois via isQrReviewSession)
+
+7. index.html — site-paths + qr-service antes do decode
+
+TESTES (DoD 1-7)
+-----------------
+| # | Ação | Status |
+|---|------|--------|
+| 1 | QR dashboard prof contém cliente.html?professionalId= | Código OK — validar manual |
+| 2 | Scan celular → drawer prof | Código OK — validar manual |
+| 3 | QR dashboard estab → establishmentId | Código OK |
+| 4 | Scan estab → drawer estab | Código OK |
+| 5 | Upload imagem QR no index | Código OK |
+| 6 | Colar link no barcode paste | Código OK |
+| 7 | Igual busca manual (abrirDrawer) | Alinhado cliente.js ~1297 |
+
+Cache bust: 20260628-qr-perfil-busca

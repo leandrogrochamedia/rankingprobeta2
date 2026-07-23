@@ -49,7 +49,7 @@
 
   let previewMode = 'local';
   let explorerPath = '';
-  let lastFilePreview = '/app/cliente.html';
+  let lastFilePreview = '/app/discover.html';
   let serverOnline = false;
   let healthPollTimer = null;
   let gitStatus = { isRepo: false, clean: true, count: 0, files: [] };
@@ -71,10 +71,10 @@
   const MOBILE_PREVIEW_CLASS = 'devtool-mobile-preview';
 
   let config = {
-    localPreview: '/app/cliente.html',
+    localPreview: '/app/discover.html',
     onlinePreview: 'https://leandrogrochamedia.github.io/RankingPro/',
     rootPath: '/Users/leandrogrocha/Documents/DEV/MVP Hanking PRO',
-    localFilePath: '/Users/leandrogrocha/Documents/DEV/MVP Hanking PRO/cliente.html',
+    localFilePath: '/Users/leandrogrocha/Documents/DEV/MVP Hanking PRO/discover.html',
     startCommand: 'cd devtool && python3 launcher.py',
     launcherUrl: 'http://127.0.0.1:8789',
     serverUrl: 'http://127.0.0.1:8790'
@@ -470,11 +470,12 @@
     const labelH = 28;
     const outerW = MOBILE_DEVICE.width + MOBILE_DEVICE.bezel * 2;
     const outerH = MOBILE_DEVICE.height + MOBILE_DEVICE.bezel * 2 + labelH;
-    const pad = 20;
+    const pad = 10;
     const availW = Math.max(120, els.previewViewport.clientWidth - pad);
     const availH = Math.max(120, els.previewViewport.clientHeight - pad);
-    const scale = Math.min(1, availW / outerW, availH / outerH);
-    els.mobileChrome.style.transform = scale < 0.995 ? `scale(${scale})` : 'none';
+    const scale = Math.min(1.2, availW / outerW, availH / outerH);
+    const isNearIdentity = scale > 0.995 && scale < 1.005;
+    els.mobileChrome.style.transform = isNearIdentity ? 'none' : `scale(${scale})`;
   }
 
   function bindMobileResize() {
@@ -816,6 +817,6 @@
   initAgentPanels();
   bindMobileFrameLoad();
   startIframeUrlPolling();
-  addSystemMessage('Ranking Pro DevTool — preview local: cliente.html · 3 agentes independentes');
+  addSystemMessage('Ranking Pro DevTool — preview local: discover.html · 3 agentes independentes');
   loadConfig().then(() => checkHealth());
 })();

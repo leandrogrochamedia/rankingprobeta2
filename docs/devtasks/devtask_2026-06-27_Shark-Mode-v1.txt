@@ -1,0 +1,24 @@
+DELEGAÇÃO — Shark Mode v1.0 (Magrão)
+Doc: Desktop/RANKING PRO LOG/SHARK-MODE-v1.md
+
+QR SAGRADO — avaliação verificada só via QR.
+
+JÁ FEITO
+- cliente-avaliar.html (home QR)
+- buscar.html (especialidade + cidade → /p/)
+- /p/ com bio, WhatsApp, Instagram + aviso QR
+- Discovery legado (cliente.html) = DEV only
+- Marketplace estab reativado no dock
+
+CONSTRUIR (ordem)
+1. dashboard-profissional.html — média, QR, link /p/
+2. dashboard-estabelecimento.html — lista profissionais vinculados
+3. Simplificar estabelecimento-marketplace (só nota + volume)
+4. Assinatura mensal estabelecimento (gate)
+5. profissional-buscar-estabelecimentos.html
+6. SQL 002_proofly_bridge.sql
+
+NÃO FAZER
+- Match, vibes, carrossel, favoritos, tinder, IGV fluff
+- Avaliar sem QR
+- Campos extras no perfil

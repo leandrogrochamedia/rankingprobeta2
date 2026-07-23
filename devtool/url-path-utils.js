@@ -42,22 +42,46 @@
     return rel ? `${root}/${rel}` : `${root}/`;
   }
 
+  function splitUrlSuffix(raw) {
+    const hash = raw.includes('#') ? raw.slice(raw.indexOf('#')) : '';
+    const beforeHash = hash ? raw.slice(0, raw.indexOf('#')) : raw;
+    const search = beforeHash.includes('?') ? beforeHash.slice(beforeHash.indexOf('?')) : '';
+    return { search, hash };
+  }
+
+  function toFilesystemPath(raw) {
+    const clean = String(raw || '').trim();
+    if (!clean) return '';
+    if (clean.startsWith('file://')) {
+      try {
+        return decodeURIComponent(new URL(clean).pathname);
+      } catch {
+        return clean.replace(/^file:\/\//, '');
+      }
+    }
+    return clean;
+  }
+
   function parseFilesystemDisplay(raw, projectRoot) {
     const clean = String(raw || '').trim();
     const root = normalizeProjectRoot(projectRoot);
     if (!clean) return { path: '—', full: '' };
 
-    if (root && clean.startsWith(root)) {
-      const rel = clean.slice(root.length).replace(/^\/+/, '');
-      const path = normalizeSitePath(`/${rel || ''}`, '', '');
-      return { path, full: clean };
+    const { search, hash } = splitUrlSuffix(clean);
+    const filesystemPath = toFilesystemPath(clean.split('?')[0].split('#')[0]);
+
+    if (root && filesystemPath.startsWith(root)) {
+      const rel = filesystemPath.slice(root.length).replace(/^\/+/, '');
+      const path = normalizeSitePath(`/${rel || ''}`, search, hash);
+      const full = sitePathToFullFile(root, path);
+      return { path, full };
     }
 
-    const name = clean.split('/').pop() || clean;
-    const path = normalizeSitePath(`/${name}`, '', '');
+    const name = filesystemPath.split('/').pop() || filesystemPath;
+    const path = normalizeSitePath(`/${name}`, search, hash);
     return {
       path,
-      full: root ? sitePathToFullFile(root, path) : clean
+      full: root ? sitePathToFullFile(root, path) : filesystemPath
     };
   }
 
@@ -83,6 +107,10 @@
     }
 
     const projectRoot = normalizeProjectRoot(opts.projectRoot);
+
+    if (/^file:\/\//i.test(clean)) {
+      return parseFilesystemDisplay(clean, projectRoot);
+    }
 
     if (projectRoot && !/^https?:\/\//i.test(clean) && !clean.startsWith('/app/')) {
       return parseFilesystemDisplay(clean, projectRoot);

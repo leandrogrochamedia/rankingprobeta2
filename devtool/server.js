@@ -383,10 +383,10 @@ const server = http.createServer((req, res) => {
 
   if (pathname === '/api/config' && req.method === 'GET') {
     sendJson(res, 200, {
-      localPreview: '/app/cliente.html',
+      localPreview: '/app/discover.html',
       onlinePreview: ONLINE_PREVIEW,
       rootPath: ROOT_DIR,
-      localFilePath: path.join(ROOT_DIR, 'cliente.html'),
+      localFilePath: path.join(ROOT_DIR, 'discover.html'),
       startCommand: `cd "${DEVTOOL_DIR}" && python3 launcher.py`,
       launcherUrl: `http://127.0.0.1:${LAUNCHER_PORT}`,
       serverUrl: `http://127.0.0.1:${PORT}`

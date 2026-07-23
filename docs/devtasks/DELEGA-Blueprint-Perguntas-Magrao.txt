@@ -1,0 +1,10 @@
+# P0 — Responder questionário Blueprint (sem código)
+
+Delegação completa no Desktop:
+  /Users/leandrogrocha/Desktop/RANKING PRO LOG/DELEGA-MAGRAO-Blueprint-Perguntas.txt
+
+Perguntas:
+  /Users/leandrogrocha/Desktop/RANKING PRO LOG/PERGUNTAS-MAGRAO-BLUEPRINT-SUPERVISOR.txt
+
+Enviar respostas:
+  /Users/leandrogrocha/Desktop/RANKING PRO LOG/enviar-relatorio-supervisor.sh

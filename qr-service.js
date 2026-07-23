@@ -94,7 +94,7 @@
 
   async function createSessionDirect(professionalId, expiresHours = 2) {
     const token = newToken();
-    const url = buildQrUrl(token);
+    const url = buildProfileBuscaUrl('professional', professionalId, { token });
     const expiresAt = new Date(Date.now() + expiresHours * 60 * 60 * 1000).toISOString();
     const row = await API().insert('qr_codes', {
       professional_id: professionalId,
@@ -146,25 +146,45 @@
       : './';
   }
 
+  function buildProfileBuscaUrl(entity, id, options) {
+    const opts = options || {};
+    const rel = global.RankingProPaths
+      ? global.RankingProPaths.siteUrl('discover.html')
+      : './discover.html';
+    const baseHref = (global.location.protocol === 'file:' && global.APP_PUBLIC_BASE_URL)
+      ? String(global.APP_PUBLIC_BASE_URL).replace(/\/$/, '') + '/discover.html'
+      : global.location.href;
+    const dest = new URL(rel, baseHref);
+    if (entity === 'professional') {
+      dest.searchParams.set('professionalId', id);
+    } else if (entity === 'establishment') {
+      dest.searchParams.set('establishmentId', id);
+    }
+    if (opts.token) {
+      dest.searchParams.set('token', opts.token);
+    }
+    return dest.href;
+  }
+
   function buildQrUrl(token) {
     const base = (global.RankingProPaths
-      ? global.RankingProPaths.siteUrl('qr/')
-      : pathRoot() + 'qr/');
+      ? global.RankingProPaths.siteUrl('scan/')
+      : pathRoot() + 'scan/');
     return base + '?token=' + encodeURIComponent(token);
   }
 
   function buildAvaliarUrl(token) {
     const base = (global.RankingProPaths
-      ? global.RankingProPaths.siteUrl('avaliar/')
-      : pathRoot() + 'avaliar/');
+      ? global.RankingProPaths.siteUrl('review/')
+      : pathRoot() + 'review/');
     return base + '?token=' + encodeURIComponent(token);
   }
 
   function buildProfileUrl(professionalId) {
     if (global.RankingProPaths) {
-      return global.RankingProPaths.siteUrl('p/?id=' + encodeURIComponent(professionalId));
+      return global.RankingProPaths.siteUrl('profile/?id=' + encodeURIComponent(professionalId));
     }
-    return pathRoot() + 'p/?id=' + encodeURIComponent(professionalId);
+    return pathRoot() + 'profile/?id=' + encodeURIComponent(professionalId);
   }
 
   function getProfessionalIdFromRpc(data) {
@@ -176,6 +196,7 @@
     createSession,
     getTokenFromUrl,
     getProfessionalIdFromUrl,
+    buildProfileBuscaUrl,
     buildQrUrl,
     buildAvaliarUrl,
     buildProfileUrl,

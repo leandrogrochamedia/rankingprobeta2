@@ -1,0 +1,24 @@
+P0 CONCLUÍDO — Investor Blueprint · Porta de entrada
+Data: 27/06/2026
+
+REVERTIDO (escopo Shark cortado)
+- shark-mode.js → cliente.html e favoritos liberados; marketplace congelado
+- flow-registry → home cliente = cliente.html
+- menu.js → dock Buscar · Favoritos · Perfil
+- index.html → Entrar + QR + Buscar (cliente.html)
+- buscar.html / cliente-avaliar.html → redirect para cliente.html
+
+P0 FECHADO
+1. index.html — Entrar · Escanear QR · Buscar profissionais
+2. login.html — demo → selecionar-perfil (ou returnTo)
+3. selecionar-perfil.html — roteia home por persona
+4. Guards dashboards — enforceProfileGuard + vínculo obrigatório
+5. QR — index-qr → cliente.html?professionalId= ou /qr/?token=
+
+CRITÉRIO DONE
+visitante → index → login → seletor → home certa → QR avalia
+
+PRÓXIMO (blueprint fila)
+- Auth real Supabase
+- Drawer UX Investor (selo verificado)
+- Comutador header

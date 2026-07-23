@@ -1,0 +1,13 @@
+{
+  "$schema": "https://opencode.ai/config.json",
+  "provider": {
+    "nvidia": {
+      "npm": "@ai-sdk/openai-compatible",
+      "name": "NVIDIA",
+      "options": {
+        "baseURL": "https://integrate.api.nvidia.com/v1",
+        "apiKey": "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"
+      }
+    }
+  }
+}

@@ -1,0 +1,20 @@
+P1 DASHBOARDS — Port MVP prof+estab + avatar meu-perfil
+
+Alterações:
+- meu-perfil: upload com preview imediato, badge "Foto alterada", validação 5MB, verificação pós-save avatar_url
+- dashboard-profissional.html: portado do MVP (~1200 linhas), loader.js, /p/?id=, shark-frozen-ui oculto
+- dashboard-estabelecimento.html: portado do MVP, stats equipe (avg profs), ranking com link /p/, CTA buscar.html
+- buscar.html restaurado (busca por especialidade+cidade, ordenado por nota)
+- profile-dashboard.css: .shark-frozen-ui { display:none } em shark-mode
+- loader.js: reviews/router/profile-card/widgets/buscar para dashboards
+
+Seções .shark-frozen-ui ocultas:
+- Prof: Centro de Carreira, IGV, Proofly Score, Match, hiring hub
+- Estab: marketplace CTA dev, vagas, sugestões IA, RH hub avançado, Proofly Score
+
+Testes manuais pendentes no LOCAL BROWSER:
+- meu-perfil: editar → alterar foto → preview + salvar
+- dashboard-profissional: hero nota + QR + /p/
+- dashboard-estabelecimento: equipe + buscar profissionais
+
+Commit sugerido: feat: investor-p1 dashboards prof and establishment (port MVP)

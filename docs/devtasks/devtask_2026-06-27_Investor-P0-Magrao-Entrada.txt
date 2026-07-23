@@ -1,0 +1,41 @@
+# DEVTASK — Investor Blueprint P0 · Porta de Entrada
+**Data:** 2026-06-27
+**Prioridade:** P0
+**Executor:** Magrão
+**Canônico:** `agent-prompts/OFFICIAL-BLUEPRINT-v1.md`
+**Delegação:** `RANKING PRO LOG/DELEGACAO-Investor-P0-Magrao-Entrada.txt`
+
+## Missão
+
+Reorganizar e conectar entrada + identidade no `ranking-pro-shark`:
+`index → login → selecionar-perfil → home persona → QR → avaliar → perfil`
+
+## Não fazer
+
+v2/ Shark cortado · carrossel vibes · match · widget · Stripe · PWA · refatoração por esporte
+
+## Blocos
+
+1. index.html — Entrar + QR + Buscar
+2. login + proofly_session
+3. selecionar-perfil + flow-registry
+4. enforceProfileGuard nos dashboards + cliente + minhas-avaliacoes
+5. QR ponta a ponta
+6. Homes abrem (cliente + dashboards)
+
+## Done
+
+Visitante → login demo → persona certa → QR avalia → /p/ · zero redirect morto
+
+## Design
+
+DESIGN-SYSTEM-DESENVOLVEDOR.txt — glass cliente · cards login/seletor
+
+## Testes
+
+Somente local — `devtool/LOCAL BROWSER.html` ou abrir HTML no disco.
+Não usar `python -m http.server`. Supabase: Leandro.
+
+## Relatório
+
+`enviar-relatorio-supervisor.sh "INVESTOR P0 Entrada — ..."`

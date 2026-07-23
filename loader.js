@@ -7,25 +7,87 @@
 (function () {
   'use strict';
 
+  // Report navigation to DevTool / LOCAL BROWSER parent (works even on file://).
+  (function reportPreviewNav() {
+    if (window.parent === window) return;
+
+    const MSG = 'ranking-pro-preview-nav';
+
+    function sitePath() {
+      let p = location.pathname || '/';
+      if (p.startsWith('/app/')) p = p.slice(4) || '/';
+      else if (p === '/app') p = '/';
+      const file = p.split('/').filter(Boolean).pop() || 'index.html';
+      const suffix = `${location.search || ''}${location.hash || ''}`;
+      if (file === 'index.html') return `/${suffix}`;
+      return `/${file}${suffix}`;
+    }
+
+    function report() {
+      try {
+        window.parent.postMessage({
+          type: MSG,
+          path: sitePath(),
+          href: location.href
+        }, '*');
+      } catch { /* noop */ }
+    }
+
+    report();
+    window.addEventListener('popstate', report);
+    window.addEventListener('hashchange', report);
+    window.addEventListener('pageshow', report);
+    window.addEventListener('load', report);
+    document.addEventListener('DOMContentLoaded', report);
+    document.addEventListener('click', () => setTimeout(report, 0), true);
+
+    const pushState = history.pushState;
+    const replaceState = history.replaceState;
+    if (typeof pushState === 'function') {
+      history.pushState = function (...args) {
+        const result = pushState.apply(this, args);
+        report();
+        return result;
+      };
+    }
+    if (typeof replaceState === 'function') {
+      history.replaceState = function (...args) {
+        const result = replaceState.apply(this, args);
+        report();
+        return result;
+      };
+    }
+  })();
+
   const page = (window.location.pathname.split('/').pop() || 'index.html').toLowerCase();
+  const isClienteDiscovery = page === 'discover.html';
+  const isCliente = page.includes('cliente');
+  const skipFloatingMenu = /^(apendice|widget|sql-log|base-de-dados)/.test(page);
 
   const CORE = [
     './config.js',
     './shark-mode.js',
     './utils.js',
+    './utils-match.js',
     './api.js',
     './session.js',
     './flow-registry.js',
     './profile-selector.js',
-    './confirm-modal.js'
+    './confirm-modal.js',
+    './user-greeting.js',
+    './sidebar-menu.js',
+    './dev-role-simulation.js'
   ];
 
+  // menu.js: dock em cliente, profile, profile-page, favoritos, dashboards, etc.
+  if (!skipFloatingMenu) CORE.push('./menu.js');
+
   const OPTIONAL = [];
-  const isCliente = page.includes('cliente');
-  const needsUser = /^(login|cadastro-cliente|meu-perfil|admin|selecionar-perfil|minhas-avaliacoes)/.test(page)
+  const needsUser = /^(login|signup|profile|admin|select-profile|reviews)/.test(page)
     || isCliente || page.startsWith('onboarding-') || page.startsWith('selecionar-')
     || /^dashboard-(profissional|estabelecimento)/.test(page);
-  const needsReviews = isCliente || /^(perfil-page|minhas-avaliacoes|meu-perfil)/.test(page);
+  const isDashboard = /^dashboard-(profissional|estabelecimento)/.test(page);
+  const needsReviews = isClienteDiscovery || /^(profile-page|reviews|profile)/.test(page) || isDashboard;
   const sharkOn = typeof SHARK_MODE !== 'undefined' && SHARK_MODE;
   const sharkDev = sharkOn && (
     (typeof DEBUG_MODE !== 'undefined' && DEBUG_MODE) ||
@@ -34,20 +96,28 @@
   const needsMarketplace = !sharkOn || sharkDev;
 
   if (needsUser) OPTIONAL.push('./user-service.js');
-  if (page === 'meu-perfil.html') OPTIONAL.push('./meu-perfil.js');
+  if (page === 'profile.html') OPTIONAL.push('./profile.js');
   if (needsReviews) OPTIONAL.push('./reviews-service.js');
-  if (needsMarketplace && /^(estabelecimento-marketplace|relatorio-contratante|admin)/.test(page)) {
+  if (needsMarketplace && /^(establishment-marketplace|hirer-report|admin)/.test(page)) {
     OPTIONAL.push('./talent-market.js', './hiring-service.js');
   }
-  if (needsMarketplace && /^(estabelecimento-marketplace|perfil-page|dashboard-estabelecimento|dashboard-profissional)/.test(page)) {
+  if (needsMarketplace && /^(establishment-marketplace|profile-page|establishment-dashboard|professional-dashboard)/.test(page)) {
     if (!OPTIONAL.includes('./hiring-service.js')) OPTIONAL.push('./hiring-service.js');
   }
   if (!sharkOn || sharkDev) {
-    if (isCliente && !OPTIONAL.includes('./talent-market.js')) OPTIONAL.push('./talent-market.js');
+    if (isClienteDiscovery && !OPTIONAL.includes('./talent-market.js')) OPTIONAL.push('./talent-market.js');
   }
+  if (isDashboard) {
+    OPTIONAL.push('./router.js', './components/profile-card.js', './talent-market.js', './hiring-service.js');
+  }
+  if (page === 'establishment-dashboard.html') {
+    OPTIONAL.push('./widget-utils.js', './widget-embed.js');
+  }
+  if (page === 'search.html') OPTIONAL.push('./search.js');
+  if (isClienteDiscovery) OPTIONAL.push('./qr-upload-decode.js');
 
   const scripts = CORE.concat(OPTIONAL);
-  const CACHE_BUST = '20260627-unified';
+  const CACHE_BUST = '20260628-qr-decode-panel';
   let loaded = 0;
 
   function loadNext() {

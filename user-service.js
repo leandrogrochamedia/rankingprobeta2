@@ -7,7 +7,7 @@ const CLIENT_PROFILES_API = '/rest/v1/client_profiles';
 
 /** Vínculos demo — garante owner do Batel no login do Leandro (não apaga professional_id) */
 const LEANDRO_DEMO_LINKS = {
-  email: 'leandro@proofly.com',
+  email: 'leandrogrocha@gmail.com',
   establishment_id: '10000000-0000-4000-8000-000000000001'
 };
 

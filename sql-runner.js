@@ -345,7 +345,7 @@ async function runMigration027RestSeed() {
   }
 
   const BATEL_ID = '10000000-0000-4000-8000-000000000001';
-  const LEANDRO_EMAIL = 'leandro@proofly.com';
+  const LEANDRO_EMAIL = 'leandrogrocha@gmail.com';
   let created = 0;
   let linked = 0;
 

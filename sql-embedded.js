@@ -12,14 +12,14 @@ CREATE INDEX IF NOT EXISTS idx_establishments_owner_user
 UPDATE public.establishments e
 SET owner_user_id = u.id, updated_at = NOW()
 FROM public.users u
-WHERE u.email = 'leandro@proofly.com'
+WHERE u.email = 'leandrogrocha@gmail.com'
   AND e.id = '10000000-0000-4000-8000-000000000001'::uuid;
 
 UPDATE public.users u
 SET establishment_id = '10000000-0000-4000-8000-000000000001'::uuid,
     role = CASE WHEN u.role = 'cliente' THEN 'estabelecimento' ELSE u.role END,
     updated_at = NOW()
-WHERE u.email = 'leandro@proofly.com';
+WHERE u.email = 'leandrogrocha@gmail.com';
 
 DO $owners$
 DECLARE
@@ -88,14 +88,14 @@ BEGIN
   UPDATE public.establishments e
   SET owner_user_id = u.id, updated_at = NOW()
   FROM public.users u
-  WHERE u.email = 'leandro@proofly.com'
+  WHERE u.email = 'leandrogrocha@gmail.com'
     AND e.id = '10000000-0000-4000-8000-000000000001'::uuid;
 
   UPDATE public.users u
   SET establishment_id = '10000000-0000-4000-8000-000000000001'::uuid,
       role = CASE WHEN u.role = 'cliente' THEN 'estabelecimento' ELSE u.role END,
       updated_at = NOW()
-  WHERE u.email = 'leandro@proofly.com';
+  WHERE u.email = 'leandrogrocha@gmail.com';
 
   FOR est IN
     SELECT e.id, e.name

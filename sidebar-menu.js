@@ -17,19 +17,23 @@
   const EDGE_PX = 100;
   const isTouchUI = window.matchMedia('(hover: none), (pointer: coarse)').matches;
 
+  const baseDir = window.__SIDEBAR_BASE || base || './';
+
+  function p(path) { return baseDir + path; }
+
   const items = [
-    { icon: '🏠', page: './index.html', label: 'Início' },
+    { icon: '🏠', page: p('index.html'), label: 'Início' },
     { icon: '👤', action: 'simular-cliente', label: 'Cliente' },
     { icon: '💼', action: 'simular-profissional', label: 'Profissional' },
     { icon: '🏢', action: 'simular-estabelecimento', label: 'Estabelecimento' },
-    { icon: '🧪', page: './dev-simulation.html', label: 'Simulação DEV' },
-    { icon: '📚', page: './appendix.html', label: 'Apêndice DEV' },
-    { icon: '📣', page: './widget.html', label: 'Widget' },
-    { icon: '📊', page: './admin.html', label: 'Admin' },
-    { icon: '🗄️', page: './dev/sql-log.html', label: 'SQL Log' },
-    { icon: '📄', page: './profile-page.html', label: 'Perfil (página)' },
-    { icon: '🔍', page: './establishment-marketplace.html', label: 'Marketplace (DEV)' },
-    { icon: '📋', page: './hirer-report.html', label: 'Relatório RH (DEV)' },
+    { icon: '🧪', page: p('dev-simulation.html'), label: 'Simulação DEV' },
+    { icon: '📚', page: p('appendix.html'), label: 'Apêndice DEV' },
+    { icon: '📣', page: p('widget.html'), label: 'Widget' },
+    { icon: '📊', page: p('admin.html'), label: 'Admin' },
+    { icon: '🗄️', page: p('dev/sql-log.html'), label: 'SQL Log' },
+    { icon: '📄', page: p('profile-page.html'), label: 'Perfil (página)' },
+    { icon: '🔍', page: p('establishment-marketplace.html'), label: 'Marketplace (DEV)' },
+    { icon: '📋', page: p('hirer-report.html'), label: 'Relatório RH (DEV)' },
     { icon: '🚪', page: '#', label: 'Sair', action: 'logout' }
   ];
 

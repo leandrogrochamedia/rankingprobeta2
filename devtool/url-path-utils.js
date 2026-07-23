@@ -1,7 +1,7 @@
 (function () {
   'use strict';
 
-  const ONLINE_ROOT = 'https://leandrogrochamedia.github.io/RankingPro/';
+  const ONLINE_ROOT = 'https://leandrogrochamedia.github.io/rankingprobeta2/';
 
   function stripCacheBust(url) {
     if (!url) return '';

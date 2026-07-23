@@ -365,7 +365,7 @@ async function del(table) {
   }));
 
   // QR codes for each professional
-  const APP_BASE = 'http://127.0.0.1:8790/app';
+  const APP_BASE = 'https://leandrogrochamedia.github.io/rankingprobeta2';
   const qrCodes = professionals.map(prof => {
     const token = uuid();
     return {

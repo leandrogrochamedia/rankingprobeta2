@@ -152,6 +152,7 @@ function enforceProfileGuard(requiredType, options = {}) {
   if (current) {
     window.location.href = getProfileHomeUrl(current, session);
   } else {
+    if (options.allowGuest) return true;
     window.location.href = getProfileSelectorUrl();
   }
   return false;

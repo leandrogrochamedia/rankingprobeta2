@@ -48,7 +48,7 @@
 
       <form id="login-form">
         <div style="margin-bottom:12px;">
-          <input type="email" placeholder="email@exemplo.com" value="leandrogrocha@gmail.com" style="width:100%;padding:12px;border-radius:10px;border:2px solid #e2e8f0;font-size:15px;">
+          <input type="email" placeholder="email@exemplo.com" value="acesso@temporario.com" style="width:100%;padding:12px;border-radius:10px;border:2px solid #e2e8f0;font-size:15px;">
         </div>
         <div style="margin-bottom:16px;">
           <input type="password" placeholder="••••••••" value="123456" style="width:100%;padding:12px;border-radius:10px;border:2px solid #e2e8f0;font-size:15px;">
@@ -94,45 +94,8 @@
         return;
       }
 
-      async function loginCliente() {
-        const email = 'leandrogrocha@gmail.com';
-        const name = 'Leandro Gon Rocha';
-
-        let user = await fetchUserByEmail(email);
-        if (!user) {
-          user = await createUser({ name: name, email: email, provider: 'google', role: 'cliente' });
-        }
-        if (typeof prepareUserAfterAuth === 'function') {
-          user = await prepareUserAfterAuth(user);
-        } else if (typeof ensureDemoUserLinks === 'function') {
-          user = await ensureDemoUserLinks(user);
-        }
-
-        const sessionData = typeof buildSessionFromUser === 'function'
-          ? buildSessionFromUser(user)
-          : {
-              userId: user.id,
-              name: user.name,
-              email: user.email,
-              role: user.role,
-              clientId: user.client_id || null,
-              professionalId: user.professional_id || null,
-              establishmentId: user.establishment_id || null,
-              isAdmin: user.is_admin || false
-            };
-
-        const intentAfter = new URLSearchParams(window.location.search).get('intent');
-        if (intentAfter === 'professional-onboarding') sessionData.professionalId = null;
-        if (intentAfter === 'establishment-onboarding') sessionData.establishmentId = null;
-        delete sessionData.activeProfile;
-
-        setSession(sessionData);
-
-        if (typeof redirectAfterLogin === 'function') {
-          redirectAfterLogin(intentAfter);
-          return;
-        }
-        window.location.href = './select-profile.html';
+      function loginCliente() {
+        window.location.href = './select-user.html';
       }
 
       window.loginCliente = loginCliente;

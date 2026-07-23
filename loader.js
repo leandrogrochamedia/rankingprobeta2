@@ -83,7 +83,7 @@
   if (!skipFloatingMenu) CORE.push('./menu.js');
 
   const OPTIONAL = [];
-  const needsUser = /^(login|signup|register|profile|admin|select-profile|reviews)/.test(page)
+  const needsUser = /^(login|signup|register|profile|admin|select-profile|select-user|reviews)/.test(page)
     || isCliente || page.includes('onboarding') || page.startsWith('selecionar-')
     || /^dashboard-(profissional|estabelecimento)/.test(page);
   const isDashboard = /^dashboard-(profissional|estabelecimento)/.test(page);

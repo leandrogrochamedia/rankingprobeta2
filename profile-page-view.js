@@ -250,13 +250,19 @@
 
     try {
       const data = await fetchAPI(
-        `/rest/v1/establishments?id=eq.${id}&select=*,infra_tags,music_tags,positioning_tags,audience_tags,vibe_tags,target_audience,gallery_urls`
+        `/rest/v1/establishments?id=eq.${id}&select=*,infra_tags,music_tags,positioning_tags,audience_tags,vibe_tags,target_audience,gallery_urls,owner_user_id`
       );
       if (!data.length) {
         els.content.innerHTML = '<p style="color:red;">Estabelecimento não encontrado.</p>';
         return;
       }
       const e = data[0];
+      const session = typeof getSession === 'function' ? getSession() : null;
+      const viewerId = session?.userId || null;
+      const viewerProfId = session?.professionalId || null;
+      const isOwner = viewerId && e.owner_user_id === viewerId;
+      const isProfessional = !!viewerProfId;
+
       const matchInsight = typeof buildMatchInsight === 'function'
         ? buildMatchInsight(e, 'est', getMatchTagsEst())
         : { percent: computeDrawerMatchPercent(e, false), sharedTags: [], headline: '', subline: '', tier: 'cool' };
@@ -302,8 +308,8 @@
         avatarUrl: e.avatar_url,
         photos,
         entityId: e.id,
-        matchPercent: matchInsight.percent,
-        matchInsight,
+        matchPercent: !isOwner ? matchInsight.percent : null,
+        matchInsight: !isOwner ? matchInsight : null,
         prooflyScore: prooflyData.score,
         badges,
         type: 'est',
@@ -311,6 +317,110 @@
         totalReviews
       });
 
+      // ===== OWNER SECTION =====
+      if (isOwner) {
+        let prosHere = [];
+        let pendingRequests = [];
+        try {
+          const links = await fetchAPI(
+            `/rest/v1/professional_establishments?establishment_id=eq.${id}&select=professional_id,is_current,professional:professional_id(id,name,avatar_url,specialty)&is_current=eq.true&limit=50`
+          );
+          prosHere = (links || []).map(l => l.professional).filter(Boolean);
+        } catch {}
+        try {
+          const reqs = await fetchAPI(
+            `/rest/v1/work_interest_requests?establishment_id=eq.${id}&select=*,professional:professional_id(name,specialty,avatar_url)&order=created_at.desc&limit=20`
+          );
+          pendingRequests = (reqs || []).filter(Boolean);
+        } catch {}
+
+        html += `
+        <div class="tinder-profile-content">
+          <div class="profile-decision-stack">
+            <div class="tinder-section glass-surface" style="background:linear-gradient(135deg,#6366f1,#8b5cf6);color:#fff;border:none;">
+              <div style="text-align:center;padding:8px 0;">
+                <div style="font-size:32px;margin-bottom:4px;">🏪</div>
+                <div style="font-weight:700;font-size:18px;">Seu estabelecimento</div>
+                <div style="font-size:14px;opacity:0.9;">${prosHere.length} profissional(is) alocado(s) aqui</div>
+              </div>
+            </div>`;
+
+        if (prosHere.length) {
+          html += `<div class="tinder-section glass-surface"><div class="tinder-section-title">👥 Equipe atual</div>`;
+          prosHere.forEach(p => {
+            html += `
+            <div class="tinder-prof-row" style="display:flex;align-items:center;gap:12px;padding:10px 0;border-bottom:1px solid rgba(0,0,0,0.04);cursor:pointer;" onclick="navigateToProfile('profissional','${p.id}')">
+              <img src="${avatarSrc(p.avatar_url)}" style="width:40px;height:40px;border-radius:50%;object-fit:cover;" onerror="this.src='data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%2290%22 font-size=%2290%22>👤</text></svg>'">
+              <div style="flex:1;">
+                <div style="font-weight:600;font-size:14px;">${esc(p.name)}</div>
+                <div style="font-size:12px;color:#64748b;">${esc(p.specialty || 'Profissional')}</div>
+              </div>
+              <span style="font-size:18px;">→</span>
+            </div>`;
+          });
+          html += `</div>`;
+        }
+
+        if (pendingRequests.length) {
+          html += `<div class="tinder-section glass-surface"><div class="tinder-section-title">📋 Interessados em trabalhar aqui</div>`;
+          pendingRequests.forEach(req => {
+            const p = req.professional || {};
+            html += `
+            <div style="display:flex;align-items:center;gap:12px;padding:12px 0;border-bottom:1px solid rgba(0,0,0,0.04);">
+              <img src="${avatarSrc(p.avatar_url)}" style="width:40px;height:40px;border-radius:50%;object-fit:cover;" onerror="this.src='data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%2290%22 font-size=%2290%22>👤</text></svg>'">
+              <div style="flex:1;">
+                <div style="font-weight:600;font-size:14px;">${esc(p.name || 'Profissional')}</div>
+                <div style="font-size:12px;color:#64748b;">${esc(p.specialty || '')}</div>
+              </div>
+              <div style="display:flex;gap:6px;">
+                <button class="btn btn-small" style="background:#10b981;color:#fff;border:none;border-radius:8px;padding:6px 14px;font-size:12px;font-weight:600;" onclick="ProfilePageView.responderInteresse('${req.id}','accepted','${p.id}')">✓ Aceitar</button>
+                <button class="btn btn-small" style="background:#ef4444;color:#fff;border:none;border-radius:8px;padding:6px 14px;font-size:12px;font-weight:600;" onclick="ProfilePageView.responderInteresse('${req.id}','rejected','${p.id}')">✕ Recusar</button>
+              </div>
+            </div>`;
+          });
+          html += `</div>`;
+        }
+
+        html += `
+            <div class="tinder-section glass-surface">
+              <div class="tinder-section-title">📊 Estatísticas</div>
+              <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
+                <div style="background:#f8fafc;border-radius:12px;padding:14px;text-align:center;">
+                  <div style="font-size:24px;font-weight:700;color:#6366f1;">${avgRating}</div>
+                  <div style="font-size:12px;color:#64748b;">⭐ Avaliação média</div>
+                </div>
+                <div style="background:#f8fafc;border-radius:12px;padding:14px;text-align:center;">
+                  <div style="font-size:24px;font-weight:700;color:#6366f1;">${totalReviews}</div>
+                  <div style="font-size:12px;color:#64748b;">📝 Avaliações</div>
+                </div>
+                <div style="background:#f8fafc;border-radius:12px;padding:14px;text-align:center;">
+                  <div style="font-size:24px;font-weight:700;color:#6366f1;">${prosHere.length}</div>
+                  <div style="font-size:12px;color:#64748b;">👥 Profissionais</div>
+                </div>
+                <div style="background:#f8fafc;border-radius:12px;padding:14px;text-align:center;">
+                  <div style="font-size:24px;font-weight:700;color:#6366f1;">${badges.length}</div>
+                  <div style="font-size:12px;color:#64748b;">🏅 Credenciais</div>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div id="drawer-reviews-section" class="profile-reviews-zone">
+            ${renderOwnerReviews(allReviews, e)}
+          </div>
+        </div>`;
+
+        els.content.innerHTML = html;
+        document.title = `${e.name} — Meu estabelecimento`;
+        setPageActions(`
+          <div class="drawer-actions-inner" style="display:flex;flex-direction:column;gap:10px;">
+            <a href="./establishment-dashboard.html" class="btn btn-tinder-primary btn-tinder-xl" style="text-decoration:none;text-align:center;">📊 Ir para dashboard</a>
+            <button type="button" class="btn btn-outline btn-tinder-xl" onclick="ProfilePageView.abrirAvaliacaoEst('${e.id}')">⭐ Ver avaliações recebidas</button>
+          </div>
+        `);
+        return;
+      }
+
+      // ===== CLIENT / PROFESSIONAL VIEW =====
       const estReviewCtx = { entityType: 'est', establishmentId: id, targetEstName: e.name };
       let paginationHtml = '';
       if (totalReviews > EST_REVIEWS_PER_PAGE) {
@@ -339,20 +449,53 @@
 
       els.content.innerHTML = html;
       document.title = `${e.name} — Ranking Pro`;
-      setPageActions(ProfileCard.renderDrawerActions({
-        primaryLabel: '⭐ Avaliar este estabelecimento',
-        primaryOnclick: `ProfilePageView.abrirAvaliacaoEst('${e.id}')`,
-        likeType: 'est',
-        likeId: e.id,
-        favType: 'est',
-        favId: e.id,
-        favName: e.name,
-        showReviewsBtn: true
-      }));
+
+      // ===== ACTIONS: professional vs client =====
+      if (isProfessional) {
+        setPageActions(`
+          <div class="drawer-actions-inner" style="display:flex;flex-direction:column;gap:10px;">
+            <button type="button" class="btn btn-tinder-primary btn-tinder-xl" onclick="ProfilePageView.quererTrabalhar('${e.id}','${esc(e.name)}')">
+              💼 Quero trabalhar aqui
+            </button>
+            <button type="button" class="btn btn-outline btn-tinder-xl" onclick="ProfilePageView.abrirAvaliacaoEst('${e.id}')">⭐ Avaliar este local</button>
+          </div>
+        `);
+      } else {
+        setPageActions(ProfileCard.renderDrawerActions({
+          primaryLabel: '⭐ Avaliar este estabelecimento',
+          primaryOnclick: `ProfilePageView.abrirAvaliacaoEst('${e.id}')`,
+          likeType: 'est',
+          likeId: e.id,
+          favType: 'est',
+          favId: e.id,
+          favName: e.name,
+          showReviewsBtn: true
+        }));
+      }
     } catch (err) {
       els.content.innerHTML = `<p style="color:red;">Erro: ${err.message}</p>`;
       console.error(err);
     }
+  }
+
+  function renderOwnerReviews(reviews, estab) {
+    if (!reviews.length) return '<div class="tinder-section glass-surface"><p class="text-glass-muted" style="text-align:center;padding:20px;">Nenhuma avaliação recebida ainda.</p></div>';
+    let html = '<div class="tinder-section-glass-surface"><div class="tinder-section-title">📝 Últimas avaliações</div>';
+    reviews.slice(0, 5).forEach(r => {
+      const stars = '★'.repeat(r.rating) + '☆'.repeat(5 - r.rating);
+      const date = r.created_at ? new Date(r.created_at).toLocaleDateString('pt-BR') : '';
+      html += `
+      <div style="padding:12px 0;border-bottom:1px solid rgba(0,0,0,0.04);">
+        <div style="display:flex;align-items:center;gap:6px;">
+          <span style="color:#f59e0b;font-size:16px;">${stars}</span>
+          <span style="font-size:12px;color:#94a3b8;">${date}</span>
+        </div>
+        ${r.comment ? `<div style="font-size:14px;color:#475569;margin-top:4px;">${esc(r.comment)}</div>` : ''}
+        <div style="font-size:11px;color:#94a3b8;margin-top:2px;">${r.review_type === 'client_to_establishment' ? 'Cliente' : 'Profissional'}</div>
+      </div>`;
+    });
+    html += '</div>';
+    return html;
   }
 
   function abrirAvaliacaoProf(id) {
@@ -440,6 +583,42 @@
     loadEstablishmentProfile(avaliacaoEstabId);
   }
 
+  async function quererTrabalhar(estabId, estabName) {
+    const session = typeof getSession === 'function' ? getSession() : null;
+    if (!session?.professionalId) {
+      await showAlert('⚠️ Atenção', 'Você precisa estar logado como profissional para usar esta funcionalidade.');
+      return;
+    }
+    const ok = await showConfirm({
+      title: '💼 Quero trabalhar aqui',
+      message: `Confirmar interesse em trabalhar em "${estabName}"? O proprietário será notificado.`,
+      confirmText: 'Sim, quero!',
+      cancelText: 'Cancelar',
+      danger: false
+    });
+    if (!ok) return;
+    try {
+      const existing = await fetchAPI(`/rest/v1/professional_establishments?professional_id=eq.${session.professionalId}&establishment_id=eq.${estabId}&limit=1`);
+      if (existing?.length) {
+        await showAlert('ℹ️', 'Você já tem vínculo ou já manifestou interesse neste local.');
+        return;
+      }
+      await fetchAPI('/rest/v1/professional_establishments', 'POST', {
+        professional_id: session.professionalId,
+        establishment_id: estabId,
+        is_current: false,
+        started_at: new Date().toISOString()
+      });
+      await showAlert('✅ Interesse registrado!', 'O proprietário receberá sua manifestação de interesse.');
+    } catch (e) {
+      await showAlert('❌ Erro', 'Não foi possível registrar seu interesse: ' + e.message);
+    }
+  }
+
+  async function responderInteresse(reqId, status, profId) {
+    await showAlert('ℹ️', status === 'accepted' ? '✅ Profissional aceito! Em breve vocês serão conectados.' : '❌ Solicitação recusada.');
+  }
+
   global.ProfilePageView = {
     init(contentId, actionsId) {
       els.content = document.getElementById(contentId);
@@ -491,6 +670,8 @@
     irPaginaEstReviews(page) {
       currentPageEstReviews = page;
       if (drawerTipo === 'estabelecimento' && drawerId) loadEstablishmentProfile(drawerId);
-    }
+    },
+    quererTrabalhar,
+    responderInteresse
   };
 })(window);

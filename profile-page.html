@@ -9,6 +9,24 @@
 
   <link rel="stylesheet" href="./css/tokens.css">
   <link rel="stylesheet" href="./css/proofly.css">
+  <style>
+    .fullscreen-toggle {
+      position: fixed; bottom: 24px; right: 24px; z-index: 999;
+      width: 48px; height: 48px; border-radius: 50%;
+      background: rgba(15,23,42,0.8); border: 1px solid rgba(255,255,255,0.12);
+      color: #e2e8f0; font-size: 20px; cursor: pointer;
+      display: none; align-items: center; justify-content: center;
+      backdrop-filter: blur(12px); transition: 0.2s;
+    }
+    .fullscreen-toggle:hover { background: rgba(99,102,241,0.8); transform: scale(1.05); }
+    @media (min-width: 769px) { .fullscreen-toggle { display: flex; } }
+    .perfil-premium-page:-webkit-full-screen .profile-page-shell {
+      max-width: 100%; padding: 20px 40px;
+    }
+    .perfil-premium-page:fullscreen .profile-page-shell {
+      max-width: 100%; padding: 20px 40px;
+    }
+  </style>
 </head>
 <body class="perfil-premium-page">
 
@@ -25,7 +43,27 @@
 
   <div id="perfilActions" class="profile-page-actions" hidden aria-hidden="true"></div>
 
+  <button type="button" class="fullscreen-toggle" id="btnFullscreen" title="Tela cheia" aria-label="Alternar tela cheia">⛶</button>
+
   <script src="./loader.js"></script>
   <script src="./components/profile-page-boot.js"></script>
+  <script>
+    document.addEventListener('scriptsLoaded', function () {
+      const btn = document.getElementById('btnFullscreen');
+      if (!btn) return;
+      btn.addEventListener('click', function () {
+        if (!document.fullscreenElement) {
+          document.body.requestFullscreen().catch(function () {});
+          btn.textContent = '✕';
+        } else {
+          document.exitFullscreen().catch(function () {});
+          btn.textContent = '⛶';
+        }
+      });
+      document.addEventListener('fullscreenchange', function () {
+        btn.textContent = document.fullscreenElement ? '✕' : '⛶';
+      });
+    });
+  </script>
 </body>
 </html>

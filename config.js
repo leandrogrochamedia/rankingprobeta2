@@ -18,8 +18,9 @@ const APP_PUBLIC_BASE_URL = (() => {
 })();
 
 const DEBUG_MODE = true;
-/** Menu dev oculto em produção (GitHub Pages) — visível só em localhost */
+/** Menu dev oculto em produção (GitHub Pages) — visível em localhost e file:// */
 const PROOFLY_DEV_MENU = typeof location !== 'undefined' && (
+  location.protocol === 'file:' ||
   location.hostname === 'localhost' ||
   location.hostname === '127.0.0.1' ||
   location.hostname === '[::1]'

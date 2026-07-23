@@ -113,7 +113,6 @@
         loading = false;
         this.classList.remove('cep-loading');
         this.disabled = false;
-        this.focus();
       }
     });
 

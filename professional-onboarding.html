@@ -284,6 +284,7 @@
 
       const urlParams = new URLSearchParams(window.location.search);
       const force = urlParams.get('force') === 'true';
+      const next = urlParams.get('next') || null;
       const session = getSession();
       let userId = null, userEmail = '';
 
@@ -291,7 +292,7 @@
         userId = session.userId;
         userEmail = session.email || '';
         if (!force && session.professionalId) {
-          window.location.href = './professional-dashboard.html';
+          window.location.href = next || './professional-dashboard.html';
           return;
         }
       } else {
@@ -656,7 +657,7 @@
           }
 
           await showAlert('✅ Sucesso!', 'Perfil profissional criado com sucesso!');
-          setTimeout(() => window.location.href = './professional-dashboard.html', 1500);
+          setTimeout(() => window.location.href = next || './professional-dashboard.html', 1500);
         } catch (e) {
           dom.finalMessage.innerHTML = `<div style="background:#fee2e2; color:#991b1b; padding:16px; border-radius:14px; text-align:center;">❌ Erro: ${e.message}</div>`;
           await showAlert('❌ Erro', 'Erro ao criar perfil: ' + e.message);

@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="theme-color" content="#08080f">
+  <meta name="color-scheme" content="dark">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <title>Ranking Pro — Criar Conta</title>
+  <style>
+    .register-container { max-width: 420px; margin: 60px auto; padding: 0 20px; }
+    .register-container .card { padding: 32px 28px; }
+    .register-container h1 { text-align: center; font-size: 28px; margin-bottom: 4px; color: #0f172a; }
+    .register-container .sub { text-align: center; color: #64748b; margin-bottom: 24px; font-size: 14px; }
+    .form-group { margin-bottom: 16px; }
+    .form-group label { font-size: 13px; font-weight: 600; color: #64748b; display: block; margin-bottom: 4px; }
+    .form-group input {
+      width: 100%; padding: 12px 16px; border: 1.5px solid #e2e8f0; border-radius: 14px;
+      font-family: inherit; font-size: 15px; background: #fafbfc; color: #0f172a; transition: all 0.2s;
+    }
+    .form-group input:focus { outline: none; border-color: #6366f1; background: #fff; box-shadow: 0 0 0 4px rgba(99,102,241,0.08); }
+    .btn-primary {
+      width: 100%; padding: 14px; font-size: 18px; border-radius: 50px;
+      background: linear-gradient(135deg, #6366f1, #8b5cf6); color: #fff;
+      border: none; cursor: pointer; font-weight: 600; transition: 0.2s;
+    }
+    .btn-primary:hover { transform: translateY(-2px); box-shadow: 0 8px 25px rgba(99,102,241,0.3); }
+    .back-link { display: block; text-align: center; margin-top: 20px; color: #6366f1; font-weight: 600; text-decoration: none; font-size: 14px; }
+    .back-link:hover { text-decoration: underline; }
+    .error-msg { color: #dc2626; font-size: 13px; margin-top: 4px; display: none; }
+    @media (max-width: 480px) { .register-container .card { padding: 24px 18px; } }
+  </style>
+  <link rel="stylesheet" href="./css/tokens.css">
+  <link rel="stylesheet" href="./css/proofly.css">
+</head>
+<body>
+  <div class="container register-container">
+    <div class="card">
+      <h1>✨ Criar conta</h1>
+      <p class="sub">Cadastre-se para começar</p>
+
+      <form id="register-form">
+        <div class="form-group">
+          <label for="regName">Nome completo *</label>
+          <input type="text" id="regName" placeholder="Seu nome" maxlength="120" autocomplete="name" required>
+          <div class="error-msg" id="nameError">Informe seu nome</div>
+        </div>
+        <div class="form-group">
+          <label for="regEmail">E-mail *</label>
+          <input type="email" id="regEmail" placeholder="voce@email.com" autocomplete="email" required>
+          <div class="error-msg" id="emailError">Informe um e-mail válido</div>
+        </div>
+        <button type="submit" class="btn-primary" id="regBtn">🚀 Criar conta</button>
+      </form>
+
+      <a href="./login.html" class="back-link">← Já tenho conta</a>
+    </div>
+  </div>
+
+  <script src="./loader.js"></script>
+  <script>
+    document.addEventListener('scriptsLoaded', function () {
+      const btn = document.getElementById('regBtn');
+      const nameInput = document.getElementById('regName');
+      const emailInput = document.getElementById('regEmail');
+
+      document.getElementById('register-form').addEventListener('submit', async function (e) {
+        e.preventDefault();
+        const name = nameInput.value.trim();
+        const email = emailInput.value.trim();
+
+        document.getElementById('nameError').style.display = name ? 'none' : 'block';
+        document.getElementById('emailError').style.display = email ? 'none' : 'block';
+        if (!name || !email) return;
+
+        btn.disabled = true;
+        btn.textContent = '⏳ Criando...';
+
+        try {
+          let user = await fetchUserByEmail(email);
+          if (user) {
+            await showAlert('Aviso', 'Este e-mail já está cadastrado. Faça login.');
+            window.location.href = './login.html';
+            return;
+          }
+
+          user = await createUser({
+            name: name,
+            email: email,
+            provider: 'email',
+            role: 'cliente'
+          });
+
+          const clientPayload = {
+            name: name,
+            email: email,
+            phone: '',
+            city: '',
+            state: '',
+            avatar_url: `https://ui-avatars.com/api/?name=${encodeURIComponent(name)}&background=6366f1&color=fff&size=200`
+          };
+          const clientResult = await fetchAPI('/rest/v1/client_profiles', 'POST', clientPayload);
+          const clientId = Array.isArray(clientResult) ? clientResult[0]?.id : clientResult?.id;
+
+          if (clientId) {
+            await updateUser(user.id, { client_id: clientId });
+            const session = buildSessionFromUser({ ...user, client_id: clientId });
+            delete session.activeProfile;
+            setSession(session);
+          } else {
+            const session = buildSessionFromUser(user);
+            setSession(session);
+          }
+
+          window.location.href = './onboarding-prompt.html';
+        } catch (err) {
+          console.error(err);
+          await showAlert('❌ Erro', 'Erro ao criar conta: ' + err.message);
+          btn.disabled = false;
+          btn.textContent = '🚀 Criar conta';
+        }
+      });
+    });
+  </script>
+</body>
+</html>

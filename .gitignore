@@ -1,4 +1,5 @@
-# config.js agora versionado — anon key é pública por design
+# config.js contém credenciais — use config.example.js como modelo
+config.js
 .env
 node_modules/
 .DS_Store

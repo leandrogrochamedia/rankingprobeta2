@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="theme-color" content="#08080f">
+  <meta name="color-scheme" content="dark">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <title>Ranking Pro — Você é proprietário?</title>
+  <style>
+    .prompt-container { max-width: 480px; margin: 80px auto; padding: 0 20px; text-align: center; }
+    .prompt-container .card { padding: 40px 32px; }
+    .prompt-container h1 { font-size: 28px; color: #0f172a; margin-bottom: 8px; }
+    .prompt-container .sub { color: #64748b; font-size: 16px; margin-bottom: 32px; }
+    .prompt-btn {
+      display: flex; align-items: center; justify-content: center; gap: 12px;
+      width: 100%; padding: 18px; margin-bottom: 12px;
+      border-radius: 16px; border: 2px solid #e2e8f0; background: #f8fafc;
+      font-size: 17px; font-weight: 600; cursor: pointer; transition: all 0.2s;
+      text-decoration: none; color: #0f172a;
+    }
+    .prompt-btn:hover { border-color: #6366f1; background: #fff; transform: translateY(-2px); box-shadow: 0 8px 25px rgba(99,102,241,0.1); }
+    .prompt-btn.primary { background: linear-gradient(135deg, #6366f1, #8b5cf6); color: #fff; border: none; }
+    .prompt-btn.primary:hover { box-shadow: 0 8px 25px rgba(99,102,241,0.3); }
+    .prompt-btn .icon { font-size: 28px; }
+    .skip { display: block; margin-top: 20px; color: #94a3b8; font-size: 14px; cursor: pointer; text-decoration: underline; }
+    @media (max-width: 480px) { .prompt-container .card { padding: 24px 18px; } }
+  </style>
+  <link rel="stylesheet" href="./css/tokens.css">
+  <link rel="stylesheet" href="./css/proofly.css">
+</head>
+<body>
+  <div class="container prompt-container">
+    <div class="card">
+      <h1>🏢 Seu negócio</h1>
+      <p class="sub">Você também é proprietário de um estabelecimento?</p>
+
+      <a href="./establishment-onboarding.html?force=true" class="prompt-btn primary">
+        <span class="icon">🏪</span> Sim, quero cadastrar meu negócio
+      </a>
+      <a href="./select-profile.html" class="prompt-btn">
+        <span class="icon">👤</span> Não, apenas como profissional
+      </a>
+
+      <a href="./select-profile.html" class="skip">Pular por enquanto</a>
+    </div>
+  </div>
+
+  <script src="./loader.js"></script>
+</body>
+</html>

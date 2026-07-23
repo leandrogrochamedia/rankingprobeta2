@@ -83,8 +83,8 @@
   if (!skipFloatingMenu) CORE.push('./menu.js');
 
   const OPTIONAL = [];
-  const needsUser = /^(login|signup|profile|admin|select-profile|reviews)/.test(page)
-    || isCliente || page.startsWith('onboarding-') || page.startsWith('selecionar-')
+  const needsUser = /^(login|signup|register|profile|admin|select-profile|reviews)/.test(page)
+    || isCliente || page.includes('onboarding') || page.startsWith('selecionar-')
     || /^dashboard-(profissional|estabelecimento)/.test(page);
   const isDashboard = /^dashboard-(profissional|estabelecimento)/.test(page);
   const needsReviews = isClienteDiscovery || /^(profile-page|reviews|profile)/.test(page) || isDashboard;

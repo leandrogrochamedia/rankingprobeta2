@@ -3,11 +3,13 @@
 // =====================================================
 
 async function fetchAPI(path, method = 'GET', body = null, options = {}) {
+  const url = window.SUPABASE_URL;
+  const key = window.SUPABASE_KEY;
   const opts = {
     method,
     headers: {
-      "apikey": SUPABASE_KEY,
-      "Authorization": "Bearer " + SUPABASE_KEY,
+      "apikey": key,
+      "Authorization": "Bearer " + key,
       "Content-Type": "application/json"
     }
   };
@@ -25,12 +27,12 @@ async function fetchAPI(path, method = 'GET', body = null, options = {}) {
   }
 
   if (body) opts.body = JSON.stringify(body);
-  if (DEBUG_MODE) console.log(`📡 ${method} ${path}`, body || '');
-  const resp = await fetch(SUPABASE_URL + path, opts);
+  if (window.DEBUG_MODE) console.log(`📡 ${method} ${path}`, body || '');
+  const resp = await fetch(url + path, opts);
   const text = await resp.text();
   let data;
   try { data = JSON.parse(text); } catch(e) { data = text; }
-  if (DEBUG_MODE) console.log(`✅ Resp ${resp.status}:`, data);
+  if (window.DEBUG_MODE) console.log(`✅ Resp ${resp.status}:`, data);
   if (!resp.ok) throw new Error(`Erro ${resp.status}: ${typeof data === 'string' ? data : JSON.stringify(data)}`);
   return data;
 }

@@ -1,0 +1,23 @@
+// ... existing code ...
+// ✅ SAFE APPROACH: Try name lookup, then ownership lookup
+let estId = null;
+// Step 1: Try to find establishment by name
+if (!estId) {
+  const ests = await fetchAPI("/rest/v1/establishments?name=ilike.*Batel*&select=id&limit=1");
+  if (ests?.[0]?.id) {
+    estId = ests[0].id;
+  }
+}
+// Step 2: If not found by name, try to find establishments owned by the user
+if (!estId) {
+  const ownedEstabs = await fetchAPI(`/rest/v1/establishments?owner_user_id=eq.${user.id}&select=id&limit=1`);
+  if (ownedEstabs?.[0]?.id) {
+    estId = ownedEstabs[0].id;
+  }
+}
+// ONLY set establishment_id if we found a VALID establishment
+if (estId) {
+  await fetchAPI(`/rest/v1/users?id=eq.${user.id}`, 'PATCH', { establishment_id: estId });
+  user.establishmentId = estId;
+}
+// ... rest of code ...

@@ -96,20 +96,29 @@ function setActiveProfileType(type) {
 function getProfileHomeUrl(type, session) {
   const profileType = normalizeProfileType(type);
   const s = session || (typeof getSession === 'function' ? getSession() : null) || {};
-  if (!profileType) return PROFILE_SELECTOR_URL;
+  if (!profileType) {
+    console.log('🔍 getProfileHomeUrl: no profileType, returning PROFILE_SELECTOR_URL');
+    return PROFILE_SELECTOR_URL;
+  }
 
+  let url;
   switch (profileType) {
     case 'client':
-      return (typeof getClientId === 'function' ? getClientId(s) : s.clientId)
+      url = (typeof getClientId === 'function' ? getClientId(s) : s.clientId)
         ? './index.html'
         : './select-client.html';
+      break;
     case 'professional':
-      return s.professionalId ? './professional-dashboard.html' : './select-professional.html';
+      url = s.professionalId ? './professional-dashboard.html' : './select-professional.html';
+      break;
     case 'establishment':
-      return s.establishmentId ? './establishment-dashboard.html' : './select-establishment.html';
+      url = s.establishmentId ? './establishment-dashboard.html' : './select-establishment.html';
+      break;
     default:
       return PROFILE_SELECTOR_URL;
   }
+  console.log('🔍 getProfileHomeUrl(' + type + ') => ' + url + ' | profId=' + s.professionalId + ' estabId=' + s.establishmentId + ' clientId=' + s.clientId);
+  return url;
 }
 
 function redirectToActiveProfileHome(session) {
@@ -323,15 +332,20 @@ function getPostLoginReturnTo() {
 function redirectAfterAffiliationSelection(type, session) {
   const returnTo = getPostLoginReturnTo();
   if (returnTo) {
+    console.log('🔍 redirectAfterAffiliationSelection: returnTo=' + returnTo);
     window.location.href = returnTo;
     return;
   }
-  window.location.href = getProfileHomeUrl(type, session);
+  const url = getProfileHomeUrl(type, session);
+  console.log('🔍 redirectAfterAffiliationSelection: type=' + type + ' url=' + url);
+  window.location.href = url;
 }
 
 function selectAffiliationAndGo(option) {
   if (!option) return;
+  console.log('🔍 selectAffiliationAndGo', JSON.stringify(option));
   if (option.browseOnly) {
+    console.log('🔍 browseOnly path');
     const session = (typeof getSession === 'function' ? getSession() : null) || {};
     delete session.activeProfile;
     if (typeof setSession === 'function') setSession(session);
@@ -340,10 +354,12 @@ function selectAffiliationAndGo(option) {
     return;
   }
   if (option.linked && option.entityId) {
+    console.log('🔍 linked path: type=' + option.type + ' entityId=' + option.entityId);
     const session = applyAffiliationToSession(option.type, option.entityId, option.entityName);
     redirectAfterAffiliationSelection(option.type, session);
     return;
   }
+  console.log('🔍 unlinked path: type=' + option.type);
   selectProfileAndGo(option.type);
 }
 

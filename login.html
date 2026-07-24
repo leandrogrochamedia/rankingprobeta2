@@ -48,10 +48,10 @@
 
       <form id="login-form">
         <div style="margin-bottom:12px;">
-          <input type="email" placeholder="email@exemplo.com" value="acesso@temporario.com" style="width:100%;padding:12px;border-radius:10px;border:2px solid #e2e8f0;font-size:15px;">
+          <input type="email" id="login-email" placeholder="email@exemplo.com" value="acesso@temporario.com" style="width:100%;padding:12px;border-radius:10px;border:2px solid #e2e8f0;font-size:15px;">
         </div>
         <div style="margin-bottom:16px;">
-          <input type="password" placeholder="••••••••" value="123456" style="width:100%;padding:12px;border-radius:10px;border:2px solid #e2e8f0;font-size:15px;">
+          <input type="password" id="login-password" placeholder="••••••••" value="123456" style="width:100%;padding:12px;border-radius:10px;border:2px solid #e2e8f0;font-size:15px;">
         </div>
         <button type="submit" class="btn" style="width:100%;padding:14px;font-size:18px;border-radius:50px;">🚀 Entrar</button>
       </form>
@@ -95,44 +95,56 @@
       }
 
       async function loginGoogleLeandro() {
-        const email = 'leandrogrocha@gmail.com';
         const btn = document.getElementById('btn-google');
         btn.disabled = true;
         btn.textContent = 'Entrando...';
         try {
-          // Garante que o usuário Leandro Rocha existe (cria se necessário)
-          let user = null;
-          if (typeof ensureLeandroUserExists === 'function') {
-            user = await ensureLeandroUserExists();
-          } else {
-            user = await async function(e){const d=await fetchAPI("/rest/v1/users?email=eq."+encodeURIComponent(e)+"&select=*");return d&&d.length>0?d[0]:null}(email);
-          }
+          const email = 'leandrogrocha@gmail.com';
+          let user = await fetchUserByEmail(email);
           if (!user) {
-            alert('Não foi possível carregar/criar o usuário Leandro Rocha. Verifique a conexão com Supabase.');
-            btn.disabled = false;
-            btn.innerHTML = '<img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" alt="Google"> Entrar com Google (Leandro Rocha)';
-            return;
+            const [profs, ests] = await Promise.all([
+              fetchAPI("/rest/v1/professionals?name=ilike.*Leandro*&select=id&limit=1"),
+              fetchAPI("/rest/v1/establishments?name=ilike.*Batel*&select=id&limit=1")
+            ]);
+            const profId = profs?.[0]?.id || null;
+            const estId = ests?.[0]?.id || '10000000-0000-4000-8000-000000000001';
+            user = await createUser({
+              name: 'Leandro Rocha', email,
+              provider: 'google', role: 'estabelecimento',
+              establishment_id: estId,
+              professional_id: profId,
+              client_id: null, is_admin: true
+            });
+            if (!user?.id) throw new Error('Falha ao criar usuário');
           }
-          // Aplica vínculos demo (Batel owner) e re-vincula profissional
-          if (typeof prepareUserAfterAuth === 'function') {
-            user = await prepareUserAfterAuth(user);
+          let profId = user.professional_id;
+          let estId = user.establishment_id;
+          if (!profId) {
+            const profs = await fetchAPI("/rest/v1/professionals?name=ilike.*Leandro*&select=id&limit=1");
+            profId = profs?.[0]?.id || null;
+            if (profId) {
+              await fetchAPI('/rest/v1/users?id=eq.' + user.id, 'PATCH', { professional_id: profId });
+              user.professional_id = profId;
+            }
           }
-          const sessionData = typeof buildSessionFromUser === 'function'
-            ? buildSessionFromUser(user)
-            : {
-                userId: user.id,
-                name: user.name,
-                email: user.email,
-                role: user.role,
-                clientId: user.client_id || null,
-                professionalId: user.professional_id || null,
-                establishmentId: user.establishment_id || null,
-                isAdmin: user.is_admin || false
-              };
-          delete sessionData.activeProfile;
-          setSession(sessionData);
-          console.log('✅ Login Google Leandro Rocha:', sessionData);
-          window.location.href = './index.html';
+          if (!estId) {
+            const ests = await fetchAPI("/rest/v1/establishments?name=ilike.*Batel*&select=id&limit=1");
+            estId = ests?.[0]?.id || null;
+            if (estId) {
+              await fetchAPI('/rest/v1/users?id=eq.' + user.id, 'PATCH', { establishment_id: estId });
+              user.establishment_id = estId;
+            }
+          }
+          const session = {
+            userId: user.id, name: user.name, email: user.email,
+            role: user.role, clientId: user.client_id || null,
+            professionalId: profId, establishmentId: estId,
+            isAdmin: user.is_admin || false
+          };
+          delete session.activeProfile;
+          setSession(session);
+          console.log('✅ Login Leandro:', session);
+          window.location.href = './select-profile.html';
         } catch (e) {
           console.error('Erro login Google:', e);
           alert('Erro ao iniciar sessão: ' + e.message);
@@ -141,16 +153,27 @@
         }
       }
 
+      async function loginByEmail(email) {
+        const user = await fetchUserByEmail(email);
+        if (!user) return false;
+        try { await syncUserSession(email); } catch (e) { console.warn(e); }
+        window.location.href = './select-profile.html';
+        return true;
+      }
+
       function loginCliente() {
         window.location.href = './select-user.html';
       }
 
       window.loginCliente = loginCliente;
       window.loginGoogleLeandro = loginGoogleLeandro;
+      window.loginByEmail = loginByEmail;
       document.getElementById('btn-google').addEventListener('click', loginGoogleLeandro);
-      document.getElementById('login-form').addEventListener('submit', function (e) {
+      document.getElementById('login-form').addEventListener('submit', async function (e) {
         e.preventDefault();
-        loginGoogleLeandro();
+        const email = document.getElementById('login-email').value.trim();
+        if (email && await loginByEmail(email)) return;
+        window.location.href = './select-user.html';
       });
     });
   </script>

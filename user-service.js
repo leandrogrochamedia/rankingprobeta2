@@ -214,7 +214,6 @@ async function ensureLeandroUserExists() {
 }
 
 async function prepareUserAfterAuth(user) {
-async function prepareUserAfterAuth(user) {
   let prepared = user;
   if (typeof ensureDemoUserLinks === 'function') {
     prepared = await ensureDemoUserLinks(prepared);

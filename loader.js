@@ -76,7 +76,8 @@
     './confirm-modal.js',
     './user-greeting.js',
     './sidebar-menu.js',
-    './dev-role-simulation.js'
+    './dev-role-simulation.js',
+    './user-service.js'
   ];
 
   // menu.js: dock em cliente, profile, profile-page, favoritos, dashboards, etc.
@@ -95,7 +96,6 @@
   );
   const needsMarketplace = !sharkOn || sharkDev;
 
-  if (needsUser) OPTIONAL.push('./user-service.js');
   if (page === 'profile.html') OPTIONAL.push('./profile.js');
   if (needsReviews) OPTIONAL.push('./reviews-service.js');
   if (needsMarketplace && /^(establishment-marketplace|hirer-report|admin)/.test(page)) {

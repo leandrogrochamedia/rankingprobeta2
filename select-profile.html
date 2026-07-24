@@ -44,7 +44,13 @@
   <script src="./loader.js"></script>
   <script>
     document.addEventListener('scriptsLoaded', async function () {
+      console.log('🟢 scriptsLoaded on select-profile.html');
+      console.log('🟢 selectAffiliationAndGo available:', typeof selectAffiliationAndGo === 'function');
+      console.log('🟢 applyAffiliationToSession available:', typeof applyAffiliationToSession === 'function');
+      console.log('🟢 getProfileHomeUrl available:', typeof getProfileHomeUrl === 'function');
+      console.log('🟢 redirectAfterAffiliationSelection available:', typeof redirectAfterAffiliationSelection === 'function');
       const session = typeof getSession === 'function' ? getSession() : null;
+      console.log('🟢 session:', JSON.stringify(session));
       const force = isForceProfileSelect();
       const grid = document.getElementById('profileCards');
       const sub = document.getElementById('profileSelectSub');
@@ -136,8 +142,14 @@
           '</span>' +
           '<span class="profile-select-chevron" aria-hidden="true">›</span>';
         card.addEventListener('click', function () {
+          console.log('🟢 CLICK on option:', opt.type, opt.linked, opt.entityId, opt.title);
           card.classList.add('is-selecting');
-          selectAffiliationAndGo(opt);
+          if (typeof selectAffiliationAndGo === 'function') {
+            selectAffiliationAndGo(opt);
+          } else {
+            console.error('❌ selectAffiliationAndGo is NOT a function!');
+            alert('Erro: função de redirecionamento não carregada.');
+          }
         });
         grid.appendChild(card);
       });

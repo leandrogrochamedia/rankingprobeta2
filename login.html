@@ -107,7 +107,21 @@
               fetchAPI("/rest/v1/establishments?name=ilike.*Batel*&select=id&limit=1")
             ]);
             const profId = profs?.[0]?.id || null;
-            const estId = ests?.[0]?.id || '10000000-0000-4000-8000-000000000001';
+            // Handle establishmentId: try name, then ownership
+            let estId = user.establishment_id; // start with DB value
+            if (!estId) {
+              // Try name lookup
+              const estsByName = await fetchAPI("/rest/v1/establishments?name=ilike.*Batel*&select=id&limit=1");
+              if (estsByName?.[0]?.id) {
+                estId = estsByName[0].id;
+              } else {
+                // Fallback: ownership lookup
+                const estsByOwner = await fetchAPI(`/rest/v1/establishments?owner_user_id=${user.id}&select=id&limit=1`);
+                if (estsByOwner?.[0]?.id) {
+                  estId = estsByOwner[0].id;
+                }
+              }
+            }
             user = await createUser({
               name: 'Leandro Rocha', email,
               provider: 'google', role: 'estabelecimento',
@@ -127,13 +141,24 @@
               user.professional_id = profId;
             }
           }
+          // Handle establishmentId: try name, then ownership
+          // use current value (already in variable)
           if (!estId) {
-            const ests = await fetchAPI("/rest/v1/establishments?name=ilike.*Batel*&select=id&limit=1");
-            estId = ests?.[0]?.id || null;
-            if (estId) {
-              await fetchAPI('/rest/v1/users?id=eq.' + user.id, 'PATCH', { establishment_id: estId });
-              user.establishment_id = estId;
+            // Try name lookup
+            const estsByName = await fetchAPI("/rest/v1/establishments?name=ilike.*Batel*&select=id&limit=1");
+            if (estsByName?.[0]?.id) {
+              estId = estsByName[0].id;
+            } else {
+              // Fallback: ownership lookup
+              const estsByOwner = await fetchAPI(`/rest/v1/establishments?owner_user_id=${user.id}&select=id&limit=1`);
+              if (estsByOwner?.[0]?.id) {
+                estId = estsByOwner[0].id;
+              }
             }
+          }
+          if (estId) {
+            await fetchAPI('/rest/v1/users?id=eq.' + user.id, 'PATCH', { establishment_id: estId });
+            user.establishment_id = estId;
           }
           const session = {
             userId: user.id, name: user.name, email: user.email,

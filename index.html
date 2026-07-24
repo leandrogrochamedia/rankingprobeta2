@@ -6,60 +6,156 @@
   <meta name="color-scheme" content="dark">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
   <title>Ranking Pro — Reputação verificada</title>
-
-
-
-<script src="./site-paths.js"></script>
   <link rel="stylesheet" href="./css/tokens.css">
   <link rel="stylesheet" href="./css/proofly.css">
+  <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+  <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+  <script crossorigin src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+  <style>
+    * { box-sizing: border-box; }
+    body {
+      font-family: 'Inter', system-ui, -apple-system, sans-serif;
+      background: #07070d;
+      color: #e2e8f0;
+      -webkit-font-smoothing: antialiased;
+    }
+    .home-shell {
+      min-height: 100vh;
+      display: flex; flex-direction: column; align-items: center; justify-content: center;
+      padding: 40px 24px;
+      background: radial-gradient(ellipse at 50% 0%, rgba(99,102,241,0.12) 0%, transparent 60%),
+                  radial-gradient(ellipse at 80% 80%, rgba(139,92,246,0.08) 0%, transparent 50%);
+    }
+    .home-card {
+      max-width: 420px; width: 100%;
+      background: linear-gradient(145deg, rgba(255,255,255,0.04), rgba(255,255,255,0.02));
+      border: 1px solid rgba(255,255,255,0.06);
+      border-radius: 24px;
+      padding: 40px 32px;
+      text-align: center;
+    }
+    .home-title {
+      font-size: clamp(32px, 6vw, 48px);
+      font-weight: 900;
+      letter-spacing: -0.03em;
+      background: linear-gradient(135deg, #e2e8f0, #a5b4fc, #818cf8);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      margin: 0 0 8px;
+      line-height: 1.1;
+    }
+    .home-sub {
+      font-size: 14px; color: #94a3b8; line-height: 1.5; margin: 0 0 28px;
+    }
+    .home-btn {
+      display: flex; align-items: center; justify-content: center;
+      width: 100%; padding: 14px 20px; font-size: 15px; font-weight: 700;
+      border: none; border-radius: 16px; cursor: pointer;
+      text-decoration: none; font-family: inherit; outline: none;
+      transition: transform 0.2s, box-shadow 0.2s;
+      -webkit-tap-highlight-color: transparent;
+    }
+    .home-btn-primary {
+      color: #fff;
+      background: linear-gradient(135deg, #6366f1, #8b5cf6);
+      box-shadow: 0 8px 32px rgba(99,102,241,0.3);
+    }
+    .home-btn-primary:hover {
+      transform: translateY(-1px);
+      box-shadow: 0 12px 36px rgba(99,102,241,0.4);
+    }
+    .home-btn-secondary {
+      color: #e2e8f0;
+      background: rgba(255,255,255,0.06);
+      border: 1px solid rgba(255,255,255,0.12);
+    }
+    .home-btn-secondary:hover { background: rgba(255,255,255,0.1); }
+    .home-actions { display: flex; flex-direction: column; gap: 10px; }
+    .home-divider {
+      margin: 20px 0 12px; font-size: 12px; color: #64748b; text-align: center;
+    }
+    .home-link {
+      display: block; text-align: center; font-size: 14px; font-weight: 600;
+      color: #6366f1; text-decoration: none;
+    }
+    .home-link:hover { color: #818cf8; }
+    .home-footer {
+      padding: 16px; text-align: center; font-size: 11px; color: #475569;
+    }
+    .top-link {
+      position: fixed; top: 0; right: 0; z-index: 100;
+      padding: 16px 24px;
+    }
+    .top-link a {
+      font-size: 14px; font-weight: 500; color: #64748b;
+      text-decoration: none; padding: 8px 16px;
+      border-radius: 20px; transition: 0.2s;
+    }
+    .top-link a:hover { background: rgba(255,255,255,0.05); color: #e2e8f0; }
+  </style>
 </head>
-<body class="home-splash nucleus-page">
-
-  <div class="qr-modal" id="qrScannerContainer">
-    <div class="qr-modal-backdrop" onclick="fecharScannerQR()"></div>
-    <div class="qr-modal-content">
-      <div class="qr-modal-header">
-        <h3>📷 Escanear QR Code</h3>
-        <button type="button" class="qr-modal-close" onclick="fecharScannerQR()">✕</button>
-      </div>
-      <div class="scanner-box"><div id="qr-reader"></div></div>
-      <p id="qrScannerStatus" class="qr-status">Iniciando câmera...</p>
-    </div>
+<body>
+  <div class="top-link">
+    <a href="./blueprint.html" target="_blank">Sobre</a>
   </div>
 
-  <main class="home-splash-main">
-    <div class="home-splash-card">
-      <div class="home-splash-logo" aria-hidden="true">🏆</div>
-      <div id="rp-site-nav"></div>
+  <div id="root"></div>
 
-      <div class="home-splash-badge-wrap">
-        <p class="home-splash-badge">✓ Só após atendimento real</p>
-      </div>
-      <h1>Ranking Pro</h1>
-      <p class="home-splash-lead">Reputação verificada por QR — avaliações reais após atendimento.</p>
+  <footer class="home-footer">© 2026 Ranking Pro — Reputação verificada</footer>
 
-      <div class="home-splash-actions">
-        <a class="home-splash-btn home-splash-btn--primary" href="login.html">
-          <span aria-hidden="true">🔐</span>
-          <span>Entrar</span>
-        </a>
-        <button type="button" class="home-splash-btn home-splash-btn--secondary" id="btnScanQr">
-          <span aria-hidden="true">📷</span>
-          <span>Escanear QR para avaliar</span>
-        </button>
-      </div>
-
-      <p class="home-splash-divider">ou continue sem conta</p>
-      <div class="home-splash-links">
-        <a class="home-splash-link" href="discover.html">Buscar profissionais e lugares →</a>
-      </div>
-    </div>
-  </main>
-
-  <footer class="home-splash-footer">© 2026 Ranking Pro — Reputação verificada</footer>
-
+  <script src="./site-paths.js"></script>
   <script src="./index-qr.js"></script>
   <script src="./loader.js"></script>
-  <script src="./site-nav.js"></script>
+  <script type="text/babel">
+    const { useState, useEffect } = React;
+
+    function Trophy() {
+      return (
+        <svg viewBox="0 0 80 80" fill="none" style={{ width: 56, height: 56, display: 'block' }}>
+          <defs>
+            <linearGradient id="t" x1="0" y1="0" x2="1" y2="1">
+              <stop offset="0%" stopColor="#e2e8f0"/>
+              <stop offset="50%" stopColor="#a5b4fc"/>
+              <stop offset="100%" stopColor="#818cf8"/>
+            </linearGradient>
+          </defs>
+          <path d="M28 16h24v10c0 7-4 14-10 16H38c-6-2-10-9-10-16V16z" fill="url(#t)" opacity="0.9"/>
+          <path d="M28 16c-5 0-9 2-12 6s-3 12 2 16" stroke="url(#t)" strokeWidth="2.5" strokeLinecap="round"/>
+          <path d="M52 16c5 0 9 2 12 6s3 12-2 16" stroke="url(#t)" strokeWidth="2.5" strokeLinecap="round"/>
+          <path d="M40 42v8m-8 0h16" stroke="url(#t)" strokeWidth="2.5" strokeLinecap="round"/>
+          <path d="M32 56c0 3 3 6 8 6s8-3 8-6" stroke="url(#t)" strokeWidth="2.5" strokeLinecap="round"/>
+          <path d="M26 62c0 2 3 4 14 4s14-2 14-4" stroke="url(#t)" strokeWidth="2" strokeLinecap="round"/>
+        </svg>
+      );
+    }
+
+    function Home() {
+      return (
+        <div className="home-shell">
+          <div className="home-card">
+            <div style={{ display: 'flex', justifyContent: 'center', marginBottom: 12 }}>
+              <Trophy />
+            </div>
+            <h1 className="home-title">Ranking Pro</h1>
+            <p className="home-sub">Reputação verificada por QR — avaliações reais após atendimento.</p>
+
+            <div className="home-actions">
+              <a className="home-btn home-btn-primary" href="login.html">Entrar</a>
+              <button type="button" className="home-btn home-btn-secondary" id="btnScanQr">
+                📷 Escanear QR para avaliar
+              </button>
+            </div>
+
+            <p className="home-divider">ou continue sem conta</p>
+            <a className="home-link" href="discover.html">Buscar profissionais e lugares →</a>
+          </div>
+        </div>
+      );
+    }
+
+    ReactDOM.createRoot(document.getElementById('root')).render(<Home />);
+  </script>
 </body>
 </html>

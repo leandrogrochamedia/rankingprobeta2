@@ -12,7 +12,8 @@
     heartFill: '<svg class="dock-svg" viewBox="0 0 24 24" fill="currentColor" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 20s-7-4.6-7-10a4 4 0 0 1 7-2.5A4 4 0 0 1 19 10c0 5.4-7 10-7 10z"/></svg>',
     star: '<svg class="dock-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 2l2.4 7.2H22l-6 4.8 2.4 7.2L12 16l-6.4 4.8L8 14l-6-4.8h7.6z"/></svg>',
     chat: '<svg class="dock-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 6h14a2 2 0 0 1 2 2v7a2 2 0 0 1-2 2H9l-4 3V8a2 2 0 0 1 2-2z"/></svg>',
-    back: '<svg class="dock-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14 6l-6 6 6 6"/></svg>'
+    back: '<svg class="dock-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14 6l-6 6 6 6"/></svg>',
+    share: '<svg class="dock-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 12v7a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-7"/><polyline points="16 6 12 2 8 6"/><line x1="12" y1="2" x2="12" y2="15"/></svg>'
   };
   global.PROFILE_DOCK_SVG = PROFILE_DOCK_SVG;
 
@@ -909,7 +910,8 @@
       primaryLabel, primaryOnclick,
       favType, favId, favName,
       likeType, likeId,
-      showReviewsBtn
+      showReviewsBtn,
+      shareOnclick
     } = opts;
     const contactOnclick = opts.contactOnclick || "typeof showAlert==='function'?showAlert('📞 Contato','Em breve: contato direto pelo Ranking Pro.'):alert('Contato em breve')";
     const items = [];
@@ -926,6 +928,9 @@
       items.push(`<a href="#" class="dock-item${fav ? ' active' : ''}" onclick="event.preventDefault();ProfileCard.toggleFavorite('${favType}','${favId}','${safeName}',this)" data-tooltip="${fav ? 'Remover dos favoritos' : 'Favoritar'}" aria-label="${fav ? 'Remover dos favoritos' : 'Favoritar'}">${PROFILE_DOCK_SVG[svg]}</a>`);
     }
     items.push(`<a href="#" class="dock-item" onclick="event.preventDefault();${contactOnclick}" data-tooltip="Contato" aria-label="Contato">${PROFILE_DOCK_SVG.chat}</a>`);
+    if (shareOnclick) {
+      items.push(`<a href="#" class="dock-item" onclick="event.preventDefault();${shareOnclick}" data-tooltip="Compartilhar" aria-label="Compartilhar">${PROFILE_DOCK_SVG.share}</a>`);
+    }
     items.push(`<a href="#" class="dock-item" onclick="event.preventDefault();fecharDrawer()" data-tooltip="Voltar" aria-label="Voltar">${PROFILE_DOCK_SVG.back}</a>`);
     return items.join('');
   }

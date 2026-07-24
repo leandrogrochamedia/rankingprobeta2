@@ -222,6 +222,7 @@
           <div class="drawer-actions-inner" style="display:flex;flex-direction:column;gap:10px;">
             <button type="button" class="btn btn-tinder-primary btn-tinder-xl" onclick="HiringFlow.openProposalModal('${prof.id}')">${hireLabel}</button>
             <button type="button" class="btn btn-outline btn-tinder-xl" onclick="ProfilePageView.abrirAvaliacaoProf('${prof.id}')">⭐ Avaliar profissional</button>
+            <button type="button" class="btn btn-outline btn-tinder-xl" onclick="ProfilePageView.compartilharPerfil('profissional','${prof.id}','${escapeHtml(prof.name)}')">🔗 Compartilhar</button>
           </div>
         `);
       } else {
@@ -233,7 +234,8 @@
           favType: 'prof',
           favId: prof.id,
           favName: prof.name,
-          showReviewsBtn: true
+          showReviewsBtn: true,
+          shareOnclick: `ProfilePageView.compartilharPerfil('profissional','${prof.id}','${escapeHtml(prof.name)}')`
         }));
       }
     } catch (e) {
@@ -415,6 +417,7 @@
           <div class="drawer-actions-inner" style="display:flex;flex-direction:column;gap:10px;">
             <a href="./establishment-dashboard.html" class="btn btn-tinder-primary btn-tinder-xl" style="text-decoration:none;text-align:center;">📊 Ir para dashboard</a>
             <button type="button" class="btn btn-outline btn-tinder-xl" onclick="ProfilePageView.abrirAvaliacaoEst('${e.id}')">⭐ Ver avaliações recebidas</button>
+            <button type="button" class="btn btn-outline btn-tinder-xl" onclick="ProfilePageView.compartilharPerfil('estabelecimento','${e.id}','${escapeHtml(e.name)}')">🔗 Compartilhar</button>
           </div>
         `);
         return;
@@ -458,6 +461,7 @@
               💼 Quero trabalhar aqui
             </button>
             <button type="button" class="btn btn-outline btn-tinder-xl" onclick="ProfilePageView.abrirAvaliacaoEst('${e.id}')">⭐ Avaliar este local</button>
+            <button type="button" class="btn btn-outline btn-tinder-xl" onclick="ProfilePageView.compartilharPerfil('estabelecimento','${e.id}','${escapeHtml(e.name)}')">🔗 Compartilhar</button>
           </div>
         `);
       } else {
@@ -469,7 +473,8 @@
           favType: 'est',
           favId: e.id,
           favName: e.name,
-          showReviewsBtn: true
+          showReviewsBtn: true,
+          shareOnclick: `ProfilePageView.compartilharPerfil('estabelecimento','${e.id}','${escapeHtml(e.name)}')`
         }));
       }
     } catch (err) {
@@ -583,6 +588,29 @@
     loadEstablishmentProfile(avaliacaoEstabId);
   }
 
+  async function compartilharPerfil(tipo, id, nome) {
+    const url = profilePageUrl(tipo, id);
+    const texto = `Confira o perfil de ${nome} no Ranking Pro!\n${url}`;
+    if (typeof navigator !== 'undefined' && navigator.share) {
+      try {
+        await navigator.share({ title: `${nome} — Ranking Pro`, text: texto, url });
+        return;
+      } catch (e) {
+        if (e.name === 'AbortError') return;
+      }
+    }
+    try {
+      await navigator.clipboard.writeText(url);
+      if (typeof showAlert === 'function') {
+        await showAlert('🔗 Link copiado!', 'Link do perfil copiado para a área de transferência.');
+      }
+    } catch {
+      if (typeof showAlert === 'function') {
+        await showAlert('📋 Copie o link', url);
+      }
+    }
+  }
+
   async function quererTrabalhar(estabId, estabName) {
     const session = typeof getSession === 'function' ? getSession() : null;
     if (!session?.professionalId) {
@@ -672,6 +700,7 @@
       if (drawerTipo === 'estabelecimento' && drawerId) loadEstablishmentProfile(drawerId);
     },
     quererTrabalhar,
-    responderInteresse
+    responderInteresse,
+    compartilharPerfil
   };
 })(window);

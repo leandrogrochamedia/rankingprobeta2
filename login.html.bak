@@ -94,63 +94,15 @@
         return;
       }
 
-      async function loginGoogleLeandro() {
-        const email = 'leandrogrocha@gmail.com';
-        const btn = document.getElementById('btn-google');
-        btn.disabled = true;
-        btn.textContent = 'Entrando...';
-        try {
-          // Garante que o usuário Leandro Rocha existe (cria se necessário)
-          let user = null;
-          if (typeof ensureLeandroUserExists === 'function') {
-            user = await ensureLeandroUserExists();
-          } else {
-            user = await async function(e){const d=await fetchAPI("/rest/v1/users?email=eq."+encodeURIComponent(e)+"&select=*");return d&&d.length>0?d[0]:null}(email);
-          }
-          if (!user) {
-            alert('Não foi possível carregar/criar o usuário Leandro Rocha. Verifique a conexão com Supabase.');
-            btn.disabled = false;
-            btn.innerHTML = '<img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" alt="Google"> Entrar com Google (Leandro Rocha)';
-            return;
-          }
-          // Aplica vínculos demo (Batel owner) e re-vincula profissional
-          if (typeof prepareUserAfterAuth === 'function') {
-            user = await prepareUserAfterAuth(user);
-          }
-          const sessionData = typeof buildSessionFromUser === 'function'
-            ? buildSessionFromUser(user)
-            : {
-                userId: user.id,
-                name: user.name,
-                email: user.email,
-                role: user.role,
-                clientId: user.client_id || null,
-                professionalId: user.professional_id || null,
-                establishmentId: user.establishment_id || null,
-                isAdmin: user.is_admin || false
-              };
-          delete sessionData.activeProfile;
-          setSession(sessionData);
-          console.log('✅ Login Google Leandro Rocha:', sessionData);
-          window.location.href = './index.html';
-        } catch (e) {
-          console.error('Erro login Google:', e);
-          alert('Erro ao iniciar sessão: ' + e.message);
-          btn.disabled = false;
-          btn.innerHTML = '<img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" alt="Google"> Entrar com Google (Leandro Rocha)';
-        }
-      }
-
       function loginCliente() {
         window.location.href = './select-user.html';
       }
 
       window.loginCliente = loginCliente;
-      window.loginGoogleLeandro = loginGoogleLeandro;
-      document.getElementById('btn-google').addEventListener('click', loginGoogleLeandro);
+      document.getElementById('btn-google').addEventListener('click', loginCliente);
       document.getElementById('login-form').addEventListener('submit', function (e) {
         e.preventDefault();
-        loginGoogleLeandro();
+        loginCliente();
       });
     });
   </script>

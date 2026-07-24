@@ -79,7 +79,7 @@
           delete sessionData.activeProfile;
           setSession(sessionData);
 
-          window.location.href = './select-profile.html';
+          window.location.href = './index.html';
         } catch (e) {
           if (typeof showAlert === 'function') showAlert('❌ Erro', e.message);
           else alert('Erro: ' + e.message);
@@ -98,7 +98,7 @@
       async function carregarUsuarios() {
         listEl.innerHTML = '<div class="loading">Carregando...</div>';
         try {
-          const data = await fetchAPI('/rest/v1/users?select=id,name,email,role,professional_id,establishment_id,client_id&order=name&limit=100');
+          const data = await fetchAPI('/rest/v1/users?select=id,name,email,role,professional_id,establishment_id,client_id&order=name&limit=500');
 
           if (!data?.length) {
             listEl.innerHTML = '<div class="empty-state"><div class="icon">📭</div><p>Nenhum usuário cadastrado.</p></div>';
@@ -111,13 +111,13 @@
           let profNames = {}, estNames = {};
           if (profIds.length) {
             try {
-              const pData = await fetchAPI('/rest/v1/professionals?select=id,name&id=in.(' + profIds.map(e => e).join(',') + ')&limit=50');
+              const pData = await fetchAPI('/rest/v1/professionals?select=id,name&id=in.(' + profIds.map(e => e).join(',') + ')&limit=500');
               (pData || []).forEach(p => profNames[p.id] = p.name);
             } catch {}
           }
           if (estIds.length) {
             try {
-              const eData = await fetchAPI('/rest/v1/establishments?select=id,name&id=in.(' + estIds.map(e => e).join(',') + ')&limit=50');
+              const eData = await fetchAPI('/rest/v1/establishments?select=id,name&id=in.(' + estIds.map(e => e).join(',') + ')&limit=500');
               (eData || []).forEach(e => estNames[e.id] = e.name);
             } catch {}
           }

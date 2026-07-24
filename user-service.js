@@ -184,6 +184,36 @@ async function relinkOrphanedProfessional(user) {
   }
 }
 
+/** Cria usuário Leandro Rocha se não existir no banco (fallback para login Google) */
+async function ensureLeandroUserExists() {
+  const email = 'leandrogrocha@gmail.com';
+  try {
+    let user = await fetchUserByEmail(email);
+    if (user) {
+      console.log('✅ Leandro Rocha já existe:', user.id);
+      return user;
+    }
+    console.log('🔨 Criando usuário Leandro Rocha...');
+    const newUser = {
+      name: 'Leandro Rocha',
+      email: email,
+      provider: 'google',
+      role: 'estabelecimento',
+      establishment_id: LEANDRO_DEMO_LINKS.establishment_id,
+      professional_id: null,
+      client_id: null,
+      is_admin: true
+    };
+    user = await createUser(newUser);
+    console.log('✅ Leandro Rocha criado:', user?.id);
+    return user || newUser;
+  } catch (e) {
+    console.warn('⚠️ Erro ao garantir usuário Leandro:', e.message);
+    return null;
+  }
+}
+
+async function prepareUserAfterAuth(user) {
 async function prepareUserAfterAuth(user) {
   let prepared = user;
   if (typeof ensureDemoUserLinks === 'function') {
@@ -319,6 +349,7 @@ window.getReviewSourceFromSession = getReviewSourceFromSession;
 window.ensureDemoUserLinks = ensureDemoUserLinks;
 window.matchProfessionalByUserName = matchProfessionalByUserName;
 window.relinkOrphanedProfessional = relinkOrphanedProfessional;
+window.ensureLeandroUserExists = ensureLeandroUserExists;
 window.prepareUserAfterAuth = prepareUserAfterAuth;
 window.fetchUserAffiliations = fetchUserAffiliations;
 window.countUserAffiliations = countUserAffiliations;

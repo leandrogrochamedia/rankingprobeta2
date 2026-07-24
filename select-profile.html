@@ -42,8 +42,9 @@
   </main>
 
   <script src="./loader.js"></script>
-  <script>
-    document.addEventListener('scriptsLoaded', async function () {
+<script>
+  console.log('🔥 select-profile.html script starting');
+  document.addEventListener('scriptsLoaded', async function () {
       console.log('🟢 scriptsLoaded on select-profile.html');
       console.log('🟢 selectAffiliationAndGo available:', typeof selectAffiliationAndGo === 'function');
       console.log('🟢 applyAffiliationToSession available:', typeof applyAffiliationToSession === 'function');
